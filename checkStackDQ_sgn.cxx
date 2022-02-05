@@ -10,6 +10,7 @@
 
 // Executable to check functioning of stack
 // Analyses kinematics and track references of a kinematics file
+// For signals
 
 // Usage: root checkStackDQ_sgn.cxx++
 //          .x checkStackDQ_sgn.cxx++
