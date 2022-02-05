@@ -11,8 +11,8 @@
 // Executable to check functioning of stack
 // Analyses kinematics and track references of a kinematics file
 
-// Usage: root checkStackDQ.cxx++
-//          .x checkStackDQ.cxx++
+// Usage: root checkStackDQ_sgn.cxx++
+//          .x checkStackDQ_sgn.cxx++
 
 #include "SimulationDataFormat/MCTrack.h"
 #include "SimulationDataFormat/MCUtils.h"
