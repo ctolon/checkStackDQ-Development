@@ -37,23 +37,7 @@
 #include "ITSMFTSimulation/Hit.h"
 #include <unordered_map>
 #include <string>
-/*
-#include "TOFSimulation/Detector.h"
-#include "EMCALBase/Hit.h"
-#include "DataFormatsTRD/Hit.h"
-#include "FT0Simulation/Detector.h" // for Fit Hit
-#include "DataFormatsFV0/Hit.h"
-#include "HMPIDBase/Hit.h"
-#include "TPCSimulation/Point.h"
-#include "PHOSBase/Hit.h"
-#include "DataFormatsFDD/Hit.h"
-#include "MCHSimulation/Hit.h"
-#include "MIDSimulation/Hit.h"
-#include "DataFormatsCPV/Hit.h"
-#include "DataFormatsZDC/Hit.h"
-//#include "DetectorsCommonDataFormats/DetectorNameConf.h"
-#include "DataFormatsParameters/GRPObject.h"
-*/
+
 
 ////////////////////////////
 // Breit-Wigner Function ///
@@ -77,9 +61,9 @@ Double_t mybwMass(Double_t* x, Double_t* par)
 int checkStackDQ_sgn()
 {
 	// Define Rapidity, Lepton PDG and Sim Rapidity Type
-	Int_t kMCPdgCode;
+	Int_t kSelectionPdg;
 	Double_t kYRangeMin, kYRangeMax;
-	Bool_t midysim = kFALSE; Bool_t forwardysim = kFALSE;
+	Bool_t kMidYSimulation = kFALSE; Bool_t kForwardYSimulation = kFALSE;
 
 	// User Guide
 	std::cout << "============================================================================================" << '\n';
@@ -89,15 +73,14 @@ int checkStackDQ_sgn()
 	std::cout << "                             Usage of this macro for signals"                                 << '\n';
 	std::cout << "============================================================================================" << '\n';
 
-
 	// Enter PDG code daughter for selection
 	std::cout << "============================================================================================" << '\n';
 	std::cout << "                Selection for daughters (dilepton pairs). You should enter a PDG code."       << '\n';
 	std::cout << "                      For electron 11 or For Muon 13 and then press enter."                   << '\n';
 	std::cout << "============================================================================================" << '\n';
-	std::cin >> kMCPdgCode;
-	//if(kMCPdgCode != 13 || kMCPdgCode != 11){printf("Your LeptonPDG selection is wrong!");}
-	assert(kMCPdgCode == 13 || kMCPdgCode == 11);
+	std::cin >> kSelectionPdg;
+	//if(kSelectionPdg != 13 || kSelectionPdg != 11){printf("Your LeptonPDG selection is wrong!");}
+	assert(kSelectionPdg == 13 || kSelectionPdg == 11);
 
 	// set eta, rapidity, phi and theta ranges
 	Int_t kEtaRangeMin, kEtaRangeMax;      	kEtaRangeMin = -5; kEtaRangeMax = 5;
@@ -118,23 +101,23 @@ int checkStackDQ_sgn()
 	Int_t kBinRange_1000 = 1000;
 
 	// Settings for Selections
-	if(kMCPdgCode == 11) { kYRangeMin = -1.5; kYRangeMax = 1.5;  midysim     = kTRUE; }
-	if(kMCPdgCode == 13) { kYRangeMin = -4.3; kYRangeMax = -2.3; forwardysim = kTRUE; }
+	if(kSelectionPdg == 11) { kYRangeMin = -1.5; kYRangeMax = 1.5;  kMidYSimulation     = kTRUE; }
+	if(kSelectionPdg == 13) { kYRangeMin = -4.3; kYRangeMax = -2.3; kForwardYSimulation = kTRUE; }
 
 	/// TPave Settings for Statistics and Fitting Box
 	gStyle->SetOptStat("KSiouRMen");
 	gStyle->SetOptFit(11112);
 
 	/// Variables for Reading Kinematics
-	Float_t kMCinvMassPair, kMCPtPair, kMCVPair;
-	Float_t kMCMassPair1, kMCMassPair2;
-	Float_t kMCPx, kMCPy;
-	Float_t kMCVx, kMCVy, kMCVz;
-	Float_t kMCPt, kMCY, kMCEta, kMCP, kMCPhi, kMCTheta;
-	Float_t kMCPrimaryVx, kMCPrimaryVy, kMCPrimaryVz;
-	Float_t kMCMass;
+	Float_t kInvMassPair, kPtPair, kVertexPair;
+	Float_t kMassPair1, kMassPair2;
+	Float_t kPx, kPy;
+	Float_t kVx, kVy, kVz;
+	Float_t kPt, kY, kEta, kP, kPhi, kTheta;
+	Float_t kPrimaryVx, kPrimaryVy, kPrimaryVz;
+	Float_t kMass;
 
-	/// Variables for Reading Kinematics For Beauties
+	/// Variables for Reading Kinematics For Beauties Vertexes
 	Float_t kCandidateBzeroVx, kCandidateBzeroVy;
 	Float_t kCandidateBplusVx, kCandidateBplusVy;
 	Float_t kCandidateBszeroVx, kCandidateBszeroVy;
@@ -151,32 +134,32 @@ int checkStackDQ_sgn()
 
 
 	/// Variables for Reaing Kinematics After Cuts
-	Float_t kMCinvMassPairBranchCut, kMCPtPairBranchCut;
-	Float_t kMCPtBranchCut, kMCYBranchCut, kMCEtaBranchCut, CpMoth, kMCPhiBranchCut, kMCThetaBranchCut;
+	Float_t kInvMassPairBranchCut, kPtPairBranchCut;
+	Float_t kPtBranchCut, kYBranchCut, kEtaBranchCut, kPhiBranchCut, kThetaBranchCut;
 
 	/// Variables For Applying cuts at Numerator Level
 	Bool_t kPtCut;
 	Bool_t kEtaCut;
 	Bool_t kYCut;
-	Bool_t invMassCutJpsi, invMassCutPsi2s;
+	Bool_t kInvMassCutJpsi, kInvMassCutPsi2s;
 
 	// Set pT Cut Range
 	Float_t kPtCutRangeMin = 1.0;
 	Float_t kPtCutRangeMax = 100;
 
 	// For Forward Rapidity Set eta and Y Cut Ranges
-	Float_t kEtaCutRangeMinMuonQuality = -4.0;
-	Float_t kEtaCutRangeMaxMuonQuality = -2.5;
+	Float_t kMuonQualityEtaCutMin = -4.0;
+	Float_t kMuonQualityEtaCutMax = -2.5;
 
-	Float_t kYCutRangeMinMuonQuality = -4.0;
-	Float_t kYCutRangeMaxMuonQuality = -2.5;
+	Float_t kMuonQualityYCutMin = -4.0;
+	Float_t kMuonQualityYCutMax = -2.5;
 
 	// For Mid Rapidity Set eta and Y Cut Ranges
-	Float_t kYCutRangeMinTrackBarrel = -0.9;
-	Float_t kYCutRangeMaxTrackBarrel = 0.9;
+	Float_t kTrackBarrelYCutMin = -0.9;
+	Float_t kTrackBarrelYCutMax = 0.9;
 
-	Float_t kEtaCutRangeMinTrackBarrel = -0.9;
-	Float_t kEtaCutRangeMaxTrackBarrel = 0.9;
+	Float_t kTrackBarrelEtaCutMin = -0.9;
+	Float_t kTrackBarrelEtaCutMax = 0.9;
 
 	/// Variables For Applying cuts at Generator Level
 	Bool_t kGeneratorLevelYCut;
@@ -187,37 +170,13 @@ int checkStackDQ_sgn()
 	Float_t kGeneratorLevelYCutRangeMaxMuonQuality = -2.5;
 
 	// For Mid Rapidity Set Generator Level Y Cut
-	Float_t kGeneratorLevelYCutRangeMinTrackBarrel = -4.0;
-	Float_t kGeneratorLevelYCutRangeMaxTrackBarrel = -2.5;
+	Float_t kGeneratorLevelYCutRangeMinTrackBarrel = 0.9;
+	Float_t kGeneratorLevelYCutRangeMaxTrackBarrel = 0.9;
 
 	/// Variables for Checking Prompt / Non-Prompt
-	Bool_t PromptCheck    = kFALSE;
-	Bool_t NonPromptCheck = kFALSE;
+	Bool_t kPromptCheck    = kFALSE;
+	Bool_t kNonPromptCheck = kFALSE;
 
-	/// Variables as arrays for fill correlations Graphs
-	Double_t invMassPairArray[8*10000];
-	Double_t PtArray[8*10000];
-
-	//                                                            Beauty Hadrons PDGs                                                       //
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// 511: B0 and anti-B0 || 521: B- and B+ || 531: B_s0 and anti-B_s0 || 541: B_c+ and B_c- || 5112: anti-Sigma_b+ and Sigma_b-           //
-	// 5122: anti-Lambda_b0 and Lambda_b0 || 5132: Xi_b- and anti-Xi_b+ || 5232: anti-Xi_b0  and Xi_b0 || 5332: anti-Omega_b+ and Omega_b-  //
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	/// Variables for Count histBeauties
-	Int_t FromBeauty;
-	Int_t kCandidateBeautyMotherBzero = 511;
-	Int_t kCandidateBeautyMotherBplus = 521;
-	Int_t kCandidateBeautyMotherBszero = 531;
-	Int_t kCandidateBeautyMotherBcplus = 541;
-	Int_t kCandidateBeautyMotherSigmaB = 5112;
-	Int_t kCandidateBeautyMotherLambdaBzero = 5122;
-	Int_t kCandidateBeautyMotherXiBminus = 5132;
-	Int_t kCandidateBeautyMotherXiBzero = 5232;
-	Int_t kCandidateBeautyMotherOmegaBminus = 5332;
-
-
-	/// define histos prompt jpsi / psi2s before cuts
 	// TODO : Check the histogram ranges and optimize them.
 	// TODO: Px Py Pz ve vertex için histogramlar ekle.
 
@@ -228,13 +187,13 @@ int checkStackDQ_sgn()
 	/// define histos prompt jpsi / psi2s before cuts
 
 	// J/Psi
-	TH1F *histPtPairJpsiPrompt = new TH1F("PtPairJpsiPromptBeforeCuts",";p_{T}(GeV/c);Entries",kBinRange_100,kPtPairRangeMin,kPtPairRangeMax);
-	TH1F *histMassPairJpsiPrompt = new TH1F("MassJpsiPromptBeforeCuts",";m_{ll}(GeV/c^{2});Entries",5./0.02,0.,5.);
-	TH1F *histYJpsiPrompt = new TH1F("YJpsiPromptBeforeCuts",";y;Entries",kBinRange_100,kYRangeMin,kYRangeMax);
-	TH1F *histPtJpsiPrompt = new TH1F("PtJpsiPromptBeforeCuts",";p_{T}(GeV/c);Entries",kBinRange_100,kPtRangeMin,kPtRangeMax);
-	TH1F *histEtaJpsiPrompt = new TH1F("EtaJpsiPromptBeforeCuts",";#eta;Entries",kBinRange_100,kEtaRangeMin,kEtaRangeMax);
-	TH1F *histThetaJpsiPrompt = new TH1F("ThetaJpsiPromptBeforeCuts",";#theta (rad.);Entries",kBinRange_100,kThetaRangeMin,kThetaRangeMax);
-	TH1F *histPhiJpsiPrompt = new TH1F("PhiJpsiPromptBeforeCuts",";#varphi (rad.);Entries",kBinRange_100,kPhiRangeMin,kPhiRangeMax);
+	TH1F *histPtPairJpsiPrompt = new TH1F("PtPairJpsiPromptBeforeCuts","p_{T} Pair Distribution;p_{T}(GeV/c);Entries",kBinRange_100,kPtPairRangeMin,kPtPairRangeMax);
+	TH1F *histMassPairJpsiPrompt = new TH1F("MassJpsiPromptBeforeCuts","Invariant Mass;m_{ll}(GeV/c^{2});Entries",5./0.02,0.,5.);
+	TH1F *histYJpsiPrompt = new TH1F("YJpsiPromptBeforeCuts","Y Distribution;y;Entries",kBinRange_100,kYRangeMin,kYRangeMax);
+	TH1F *histPtJpsiPrompt = new TH1F("PtJpsiPromptBeforeCuts","p_{T} Distribution;p_{T}(GeV/c);Entries",kBinRange_100,kPtRangeMin,kPtRangeMax);
+	TH1F *histEtaJpsiPrompt = new TH1F("EtaJpsiPromptBeforeCuts","#eta Distribution;#eta;Entries",kBinRange_100,kEtaRangeMin,kEtaRangeMax);
+	TH1F *histThetaJpsiPrompt = new TH1F("ThetaJpsiPromptBeforeCuts","#theta Distribution;#theta (rad.);Entries",kBinRange_100,kThetaRangeMin,kThetaRangeMax);
+	TH1F *histPhiJpsiPrompt = new TH1F("PhiJpsiPromptBeforeCuts","#varphi Distribution;#varphi (rad.);Entries",kBinRange_100,kPhiRangeMin,kPhiRangeMax);
 	// TODO : Vertex için histolar oluştur böyle.
 	//TH1F *histVxPairJpsiPrompt = new TH1F("VxPairJpsiPromptBeforeCuts",";p_{T}(GeV/c);Entries",kBinRange_100,kPtRangeMin,kPtPairRangeMax);
 	//TH1F *histVyPairJpsiPrompt = new TH1F("VyPairJpsiPromptBeforeCuts",";p_{T}(GeV/c);Entries",kBinRange_100,kPtRangeMin,kPtPairRangeMax);
@@ -243,75 +202,75 @@ int checkStackDQ_sgn()
 
 
 	// Psi(2s)
-	TH1F *histPtPairPsi2sPrompt = new TH1F("PtPairPsi2sPromptBeforeCuts",";p_{T}(GeV/c);Entries",kBinRange_100,kPtPairRangeMin,kPtPairRangeMax);
-	TH1F *histMassPairPsi2sPrompt = new TH1F("MassPsi2sPromptBeforeCuts",";m_{ll}(GeV/c^{2});Entries",5./0.02,0.,5.);
-	TH1F *histYPsi2sPrompt = new TH1F("YPsi2sPromptBeforeCuts",";y;Entries",kBinRange_100,kYRangeMin,kYRangeMax);
-	TH1F *histPtPsi2sPrompt = new TH1F("PtPsi2sPromptBeforeCuts",";p_{T}(GeV/c);Entries",kBinRange_100,kPtRangeMin,kPtRangeMax);
-	TH1F *histEtaPsi2sPrompt = new TH1F("EtaPsi2sPromptBeforeCuts",";#eta;Entries",kBinRange_100,kEtaRangeMin,kEtaRangeMax);
-	TH1F *histThetaPsi2sPrompt = new TH1F("ThetaPsi2sPromptBeforeCuts",";#theta (rad.);Entries",kBinRange_100,kThetaRangeMin,kThetaRangeMax);
-	TH1F *histPhiPsi2sPrompt = new TH1F("PhiPsi2sPromptBeforeCuts",";#varphi (rad.);Entries",kBinRange_100,kPhiRangeMin,kPhiRangeMax);
+	TH1F *histPtPairPsi2sPrompt = new TH1F("PtPairPsi2sPromptBeforeCuts","p_{T} Pair Distribution;p_{T}(GeV/c);Entries",kBinRange_100,kPtPairRangeMin,kPtPairRangeMax);
+	TH1F *histMassPairPsi2sPrompt = new TH1F("MassPsi2sPromptBeforeCuts","Invariant Mass;m_{ll}(GeV/c^{2});Entries",5./0.02,0.,5.);
+	TH1F *histYPsi2sPrompt = new TH1F("YPsi2sPromptBeforeCuts","Y Distribution;y;Entries",kBinRange_100,kYRangeMin,kYRangeMax);
+	TH1F *histPtPsi2sPrompt = new TH1F("PtPsi2sPromptBeforeCuts","p_{T} Distribution;p_{T}(GeV/c);Entries",kBinRange_100,kPtRangeMin,kPtRangeMax);
+	TH1F *histEtaPsi2sPrompt = new TH1F("EtaPsi2sPromptBeforeCuts","#eta Distribution;#eta;Entries",kBinRange_100,kEtaRangeMin,kEtaRangeMax);
+	TH1F *histThetaPsi2sPrompt = new TH1F("ThetaPsi2sPromptBeforeCuts","#theta Distribution;#theta (rad.);Entries",kBinRange_100,kThetaRangeMin,kThetaRangeMax);
+	TH1F *histPhiPsi2sPrompt = new TH1F("PhiPsi2sPromptBeforeCuts","#varphi Distribution;#varphi (rad.);Entries",kBinRange_100,kPhiRangeMin,kPhiRangeMax);
 
 	/// define histos prompt jpsi / psi2s after cuts
 
 	// J/Psi
-	TH1F *histPtPairJpsiPromptAfterCuts = new TH1F("PtPairJpsiPromptAfterCuts",";p_{T}(GeV/c);Entries",kBinRange_100,kPtPairRangeMin,kPtPairRangeMax);
-	TH1F *histMassPairJpsiPromptAfterCuts = new TH1F("MassJpsiPromptAfterCuts",";m_{ll}(GeV/c^{2});Entries",5./0.02,0.,5.);
-	TH1F *histYJpsiPromptAfterCuts = new TH1F("YJpsiPromptAfterCuts",";y;Entries",kBinRange_100,kYRangeMin,kYRangeMax);
-	TH1F *histPtJpsiPromptAfterCuts = new TH1F("PtJpsiPromptAfterCuts",";p_{T}(GeV/c);Entries",kBinRange_100,kPtRangeMin,kPtRangeMax);
-	TH1F *histEtaJpsiPromptAfterCuts = new TH1F("EtaJpsiPromptAfterCuts",";#eta;Entries",kBinRange_100,kEtaRangeMin,kEtaRangeMax);
-	TH1F *histThetaJpsiPromptAfterCuts = new TH1F("ThetaJpsiPromptAfterCuts",";#theta (rad.);Entries",kBinRange_100,kThetaRangeMin,kThetaRangeMax);
-	TH1F *histPhiJpsiPromptAfterCuts = new TH1F("PhiJpsiPromptAfterCuts",";#varphi (rad.);Entries",kBinRange_100,kPhiRangeMin,kPhiRangeMax);
+	TH1F *histPtPairJpsiPromptAfterCuts = new TH1F("PtPairJpsiPromptAfterCuts","p_{T} Pair Distribution;p_{T}(GeV/c);Entries",kBinRange_100,kPtPairRangeMin,kPtPairRangeMax);
+	TH1F *histMassPairJpsiPromptAfterCuts = new TH1F("MassJpsiPromptAfterCuts","Invariant Mass;m_{ll}(GeV/c^{2});Entries",5./0.02,0.,5.);
+	TH1F *histYJpsiPromptAfterCuts = new TH1F("YJpsiPromptAfterCuts","Y Distribution;y;Entries",kBinRange_100,kYRangeMin,kYRangeMax);
+	TH1F *histPtJpsiPromptAfterCuts = new TH1F("PtJpsiPromptAfterCuts","p_{T} Distribution;p_{T}(GeV/c);Entries",kBinRange_100,kPtRangeMin,kPtRangeMax);
+	TH1F *histEtaJpsiPromptAfterCuts = new TH1F("EtaJpsiPromptAfterCuts","#eta Distribution;#eta;Entries",kBinRange_100,kEtaRangeMin,kEtaRangeMax);
+	TH1F *histThetaJpsiPromptAfterCuts = new TH1F("ThetaJpsiPromptAfterCuts","#theta Distribution;#theta (rad.);Entries",kBinRange_100,kThetaRangeMin,kThetaRangeMax);
+	TH1F *histPhiJpsiPromptAfterCuts = new TH1F("PhiJpsiPromptAfterCuts","#varphi Distribution;#varphi (rad.);Entries",kBinRange_100,kPhiRangeMin,kPhiRangeMax);
 	// Psi(2s)
-	TH1F *histPtPairPsi2sPromptAfterCuts = new TH1F("PtPairPsi2sPromptAfterCuts",";p_{T}(GeV/c);Entries",kBinRange_100,kPtPairRangeMin,kPtPairRangeMax);
-	TH1F *histMassPairPsi2sPromptAfterCuts = new TH1F("MassPsi2sPromptAfterCuts",";m_{ll}(GeV/c^{2});Entries",5./0.02,0.,5.);
-	TH1F *histYPsi2sPromptAfterCuts = new TH1F("YPsi2sPromptAfterCuts",";y;Entries",kBinRange_100,kYRangeMin,kYRangeMax);
-	TH1F *histPtPsi2sPromptAfterCuts = new TH1F("PtPsi2sPromptAfterCuts",";p_{T}(GeV/c);Entries",kBinRange_100,kPtRangeMin,kPtRangeMax);
-	TH1F *histEtaPsi2sPromptAfterCuts = new TH1F("EtaPsi2sPromptAfterCuts",";#eta;Entries",kBinRange_100,kEtaRangeMin,kEtaRangeMax);
-	TH1F *histThetaPsi2sPromptAfterCuts = new TH1F("ThetaPsi2sPromptAfterCuts",";#theta (rad.);Entries",kBinRange_100,kThetaRangeMin,kThetaRangeMax);
-	TH1F *histPhiPsi2sPromptAfterCuts = new TH1F("PhiPsi2sPromptAfterCuts",";#varphi (rad.);Entries",kBinRange_100,kPhiRangeMin,kPhiRangeMax);
+	TH1F *histPtPairPsi2sPromptAfterCuts = new TH1F("PtPairPsi2sPromptAfterCuts","p_{T} Pair Distribution;p_{T}(GeV/c);Entries",kBinRange_100,kPtPairRangeMin,kPtPairRangeMax);
+	TH1F *histMassPairPsi2sPromptAfterCuts = new TH1F("MassPsi2sPromptAfterCuts","Invariant Mass;m_{ll}(GeV/c^{2});Entries",5./0.02,0.,5.);
+	TH1F *histYPsi2sPromptAfterCuts = new TH1F("YPsi2sPromptAfterCuts","Y Distribution;y;Entries",kBinRange_100,kYRangeMin,kYRangeMax);
+	TH1F *histPtPsi2sPromptAfterCuts = new TH1F("PtPsi2sPromptAfterCuts","p_{T} Distribution;p_{T}(GeV/c);Entries",kBinRange_100,kPtRangeMin,kPtRangeMax);
+	TH1F *histEtaPsi2sPromptAfterCuts = new TH1F("EtaPsi2sPromptAfterCuts","#eta Distribution;#eta;Entries",kBinRange_100,kEtaRangeMin,kEtaRangeMax);
+	TH1F *histThetaPsi2sPromptAfterCuts = new TH1F("ThetaPsi2sPromptAfterCuts","#theta Distribution;#theta (rad.);Entries",kBinRange_100,kThetaRangeMin,kThetaRangeMax);
+	TH1F *histPhiPsi2sPromptAfterCuts = new TH1F("PhiPsi2sPromptAfterCuts","#varphi Distribution;#varphi (rad.);Entries",kBinRange_100,kPhiRangeMin,kPhiRangeMax);
 
 	/// define histos non-prompt jpsi / psi2s before cuts
 
 	// J/Psi
-	TH1F *histPtPairJpsiNonPrompt = new TH1F("PtPairNonPromptJpsiBeforeCuts",";p_{T}(GeV/c);Entries",kBinRange_100,kPtPairRangeMin,kPtPairRangeMax);
-	TH1F *histMassPairJpsiNonPrompt = new TH1F("MassNonPromptJpsiBeforeCuts",";m_{ll}(GeV/c^{2});Entries",5./0.02,0.,5.);
-	TH1F *histYJpsiNonPrompt = new TH1F("YJpsiNonPromptBeforeCuts",";y;Entries",kBinRange_100,kYRangeMin,kYRangeMax);
-	TH1F *histPtJpsiNonPrompt = new TH1F("PtJpsiNonPromptBeforeCuts",";p_{T}(GeV/c);Entries",kBinRange_100,kPtRangeMax,kPtRangeMax);
-	TH1F *histEtaJpsiNonPrompt = new TH1F("EtaJpsiNonPromptBeforeCuts",";#eta (rad.);Entries",kBinRange_100,kEtaRangeMin,kEtaRangeMax);
-	TH1F *histThetaJpsiNonPrompt = new TH1F("ThetaJpsiNonPromptBeforeCuts",";#theta (rad.);Entries",kBinRange_100,kThetaRangeMin,kThetaRangeMax);
-	TH1F *histPhiJpsiNonPrompt = new TH1F("PhiJpsiNonPromptBeforeCuts",";#varphi (rad.);Entries",kBinRange_100,kPhiRangeMin,kPhiRangeMax);
+	TH1F *histPtPairJpsiNonPrompt = new TH1F("PtPairNonPromptJpsiBeforeCuts","p_{T} Pair Distribution;p_{T}(GeV/c);Entries",kBinRange_100,kPtPairRangeMin,kPtPairRangeMax);
+	TH1F *histMassPairJpsiNonPrompt = new TH1F("MassNonPromptJpsiBeforeCuts","Invariant Mass;m_{ll}(GeV/c^{2});Entries",5./0.02,0.,5.);
+	TH1F *histYJpsiNonPrompt = new TH1F("YJpsiNonPromptBeforeCuts","Y Distribution;y;Entries",kBinRange_100,kYRangeMin,kYRangeMax);
+	TH1F *histPtJpsiNonPrompt = new TH1F("PtJpsiNonPromptBeforeCuts","p_{T} Distribution;p_{T}(GeV/c);Entries",kBinRange_100,kPtRangeMin,kPtRangeMax);
+	TH1F *histEtaJpsiNonPrompt = new TH1F("EtaJpsiNonPromptBeforeCuts","#eta Distribution;#eta (rad.);Entries",kBinRange_100,kEtaRangeMin,kEtaRangeMax);
+	TH1F *histThetaJpsiNonPrompt = new TH1F("ThetaJpsiNonPromptBeforeCuts","#theta Distribution;#theta (rad.);Entries",kBinRange_100,kThetaRangeMin,kThetaRangeMax);
+	TH1F *histPhiJpsiNonPrompt = new TH1F("PhiJpsiNonPromptBeforeCuts","#varphi Distribution;#varphi (rad.);Entries",kBinRange_100,kPhiRangeMin,kPhiRangeMax);
 	// BURAYA VERTEX EKLEDİM CHECK ET.
 	TH1F *histVxPairJpsiNonPrompt = new TH1F("VxPairNonPromptJpsiBeforeCuts",";p_{T}(GeV/c);Entries",1000,kVertexRangeMin,kVertexRangeMax);
 	TH1F *histVyPairJpsiNonPrompt = new TH1F("VyPairNonPromptJpsiBeforeCuts",";p_{T}(GeV/c);Entries",1000,kVertexRangeMin,kVertexRangeMax);
 	TH1F *histVzPairJpsiNonPrompt = new TH1F("VzPairNonPromptJpsiBeforeCuts",";p_{T}(GeV/c);Entries",1000,kVertexRangeMin,kVertexRangeMax);
 	TH1F *histVertexPairJpsiNonPrompt = new TH1F("VertexPairNonPromptJpsiBeforeCuts",";p_{T}(GeV/c);Entries",1000,kVertexRangeMin,kVertexRangeMax);
 	// Psi(2s)
-	TH1F *histPtPairPsi2sNonPrompt = new TH1F("PtPairPsi2sNonPromptBeforeCuts",";p_{T}(GeV/c);Entries",kBinRange_100,kPtPairRangeMin,kPtPairRangeMax);
-	TH1F *histMassPairPsi2sNonPrompt = new TH1F("MassPsi2sNonPromptBeforeCuts",";m_{ll}(GeV/c^{2});Entries",5./0.02,0.,5.);
-	TH1F *histYPsi2sNonPrompt = new TH1F("YPsi2sNonPromptBeforeCuts",";y;Entries",kBinRange_100,kYRangeMin,kYRangeMax);
-	TH1F *histPtPsi2sNonPrompt = new TH1F("PtPsi2sNonPromptBeforeCuts",";p_{T}(GeV/c);Entries",kBinRange_100,kPtRangeMin,kPtRangeMax);
-	TH1F *histEtaPsi2sNonPrompt = new TH1F("EtaPsi2sNonPromptBeforeCuts",";#eta;Entries",kBinRange_100,kEtaRangeMin,kEtaRangeMax);
-	TH1F *histThetaPsi2sNonPrompt = new TH1F("ThetaPsi2sNonPromptBeforeCuts",";#theta (rad.);Entries",kBinRange_100,kThetaRangeMin,kThetaRangeMax);
-	TH1F *histPhiPsi2sNonPrompt = new TH1F("PhiPsi2sNonPromptBeforeCuts",";#varphi (rad.);Entries",kBinRange_100,kPhiRangeMin,kPhiRangeMax);
+	TH1F *histPtPairPsi2sNonPrompt = new TH1F("PtPairPsi2sNonPromptBeforeCuts","p_{T} Pair Distribution;p_{T}(GeV/c);Entries",kBinRange_100,kPtPairRangeMin,kPtPairRangeMax);
+	TH1F *histMassPairPsi2sNonPrompt = new TH1F("MassPsi2sNonPromptBeforeCuts","Invariant Mass;m_{ll}(GeV/c^{2});Entries",5./0.02,0.,5.);
+	TH1F *histYPsi2sNonPrompt = new TH1F("YPsi2sNonPromptBeforeCuts","Y Distribution;y;Entries",kBinRange_100,kYRangeMin,kYRangeMax);
+	TH1F *histPtPsi2sNonPrompt = new TH1F("PtPsi2sNonPromptBeforeCuts","p_{T} Distribution;p_{T}(GeV/c);Entries",kBinRange_100,kPtRangeMin,kPtRangeMax);
+	TH1F *histEtaPsi2sNonPrompt = new TH1F("EtaPsi2sNonPromptBeforeCuts","#eta Distribution;#eta;Entries",kBinRange_100,kEtaRangeMin,kEtaRangeMax);
+	TH1F *histThetaPsi2sNonPrompt = new TH1F("ThetaPsi2sNonPromptBeforeCuts","#theta Distribution;#theta (rad.);Entries",kBinRange_100,kThetaRangeMin,kThetaRangeMax);
+	TH1F *histPhiPsi2sNonPrompt = new TH1F("PhiPsi2sNonPromptBeforeCuts","#varphi Distribution;#varphi (rad.);Entries",kBinRange_100,kPhiRangeMin,kPhiRangeMax);
 
 	/// define histos non-prompt jpsi / psi2s after cuts
 
 	// J/Psi
-	TH1F *histPtPairJpsiNonPromptAfterCuts = new TH1F("PtPairNonPromptJpsiAfterCuts",";p_{T}(GeV/c);Entries",kBinRange_100,kPtPairRangeMin,kPtPairRangeMax);
-	TH1F *histMassPairJpsiNonPromptAfterCuts = new TH1F("MassNonPromptJpsiAfterCuts",";m_{ll}(GeV/c^{2});Entries",5./0.02,0.,5.);
-	TH1F *histYJpsiNonPromptAfterCuts = new TH1F("YJpsiNonPromptJpsiAfterCuts",";y;Entries",kBinRange_100,kYRangeMin,kYRangeMax);
-	TH1F *histPtJpsiNonPromptAfterCuts = new TH1F("PtJpsiNonPromptJpsiAfterCuts",";p_{T}(GeV/c);Entries",kBinRange_100,kPtRangeMin,kPtRangeMax);
-	TH1F *histEtaJpsiNonPromptAfterCuts = new TH1F("EtaJpsiNonPromptAfterCuts",";#eta;Entries",kBinRange_100,kEtaRangeMin,kEtaRangeMax);
-	TH1F *histThetaJpsiNonPromptAfterCuts = new TH1F("ThetaJpsiNonPromptAfterCuts",";#theta (rad.);Entries",kBinRange_100,kThetaRangeMin,kThetaRangeMax);
-	TH1F *histPhiJpsiNonPromptAfterCuts = new TH1F("PhiJpsiNonPromptAfterCuts",";#varphi (rad.);Entries",kBinRange_100,kPhiRangeMin,kPhiRangeMax);
+	TH1F *histPtPairJpsiNonPromptAfterCuts = new TH1F("PtPairNonPromptJpsiAfterCuts","p_{T} Pair Distribution;p_{T}(GeV/c);Entries",kBinRange_100,kPtPairRangeMin,kPtPairRangeMax);
+	TH1F *histMassPairJpsiNonPromptAfterCuts = new TH1F("MassNonPromptJpsiAfterCuts","Invariant Mass;m_{ll}(GeV/c^{2});Entries",5./0.02,0.,5.);
+	TH1F *histYJpsiNonPromptAfterCuts = new TH1F("YJpsiNonPromptJpsiAfterCuts","Y Distribution;y;Entries",kBinRange_100,kYRangeMin,kYRangeMax);
+	TH1F *histPtJpsiNonPromptAfterCuts = new TH1F("PtJpsiNonPromptJpsiAfterCuts","p_{T} Distribution;p_{T}(GeV/c);Entries",kBinRange_100,kPtRangeMin,kPtRangeMax);
+	TH1F *histEtaJpsiNonPromptAfterCuts = new TH1F("EtaJpsiNonPromptAfterCuts","#eta Distribution;#eta;Entries",kBinRange_100,kEtaRangeMin,kEtaRangeMax);
+	TH1F *histThetaJpsiNonPromptAfterCuts = new TH1F("ThetaJpsiNonPromptAfterCuts","#theta Distribution;#theta (rad.);Entries",kBinRange_100,kThetaRangeMin,kThetaRangeMax);
+	TH1F *histPhiJpsiNonPromptAfterCuts = new TH1F("PhiJpsiNonPromptAfterCuts","#varphi Distribution;#varphi (rad.);Entries",kBinRange_100,kPhiRangeMin,kPhiRangeMax);
 	// Psi(2s)
-	TH1F *histPtPairPsi2sNonPromptAfterCuts = new TH1F("PtPairPsi2sNonPromptAfterCuts",";p_{T}(GeV/c);Entries",kBinRange_100,kPtPairRangeMin,kPtPairRangeMax);
-	TH1F *histMassPairPsi2sNonPromptAfterCuts = new TH1F("MassPsi2sNonPromptAfterCuts",";m_{ll}(GeV/c^{2});Entries",5./0.02,0.,5.);
-	TH1F *histYPsi2sNonPromptAfterCuts = new TH1F("YPsi2sNonPromptAfterCuts",";y;Entries",kBinRange_100,kYRangeMin,kYRangeMax);
-	TH1F *histPtPsi2sNonPromptAfterCuts = new TH1F("PtPsi2sNonPromptAfterCuts",";p_{T}(GeV/c);Entries",kBinRange_100,kPtRangeMin,kPtRangeMax);
-	TH1F *histEtaPsi2sNonPromptAfterCuts = new TH1F("EtaPsi2sNonPromptAfterCuts",";#eta;Entries",kBinRange_100,kEtaRangeMin,kEtaRangeMax);
-	TH1F *histThetaPsi2sNonPromptAfterCuts = new TH1F("ThetaPsi2sNonPromptAfterCuts",";#theta (rad.);Entries",kBinRange_100,kThetaRangeMin,kThetaRangeMax);
-	TH1F *histPhiPsi2sNonPromptAfterCuts = new TH1F("PhiPsi2sNonPromptAfterCuts",";#varphi (rad.);Entries",kBinRange_100,kPhiRangeMin,kPhiRangeMax);
+	TH1F *histPtPairPsi2sNonPromptAfterCuts = new TH1F("PtPairPsi2sNonPromptAfterCuts","p_{T} Pair Distribution;p_{T}(GeV/c);Entries",kBinRange_100,kPtPairRangeMin,kPtPairRangeMax);
+	TH1F *histMassPairPsi2sNonPromptAfterCuts = new TH1F("MassPsi2sNonPromptAfterCuts","Invariant Mass;m_{ll}(GeV/c^{2});Entries",5./0.02,0.,5.);
+	TH1F *histYPsi2sNonPromptAfterCuts = new TH1F("YPsi2sNonPromptAfterCuts","Y Distribution;y;Entries",kBinRange_100,kYRangeMin,kYRangeMax);
+	TH1F *histPtPsi2sNonPromptAfterCuts = new TH1F("PtPsi2sNonPromptAfterCuts","p_{T} Distribution;p_{T}(GeV/c);Entries",kBinRange_100,kPtRangeMin,kPtRangeMax);
+	TH1F *histEtaPsi2sNonPromptAfterCuts = new TH1F("EtaPsi2sNonPromptAfterCuts","#eta Distribution;#eta;Entries",kBinRange_100,kEtaRangeMin,kEtaRangeMax);
+	TH1F *histThetaPsi2sNonPromptAfterCuts = new TH1F("ThetaPsi2sNonPromptAfterCuts","#theta Distribution;#theta (rad.);Entries",kBinRange_100,kThetaRangeMin,kThetaRangeMax);
+	TH1F *histPhiPsi2sNonPromptAfterCuts = new TH1F("PhiPsi2sNonPromptAfterCuts","#varphi Distribution;#varphi (rad.);Entries",kBinRange_100,kPhiRangeMin,kPhiRangeMax);
 
 	/// define histos for Origin before cuts
 	TH1D *histOrigin = new TH1D("histOriginBeforeCuts","",5,0,5);
@@ -349,11 +308,9 @@ int checkStackDQ_sgn()
 	TCanvas *canvasNonPromptPtCompareAfterCuts = new TCanvas("canvasNonPromptPtCompareAfterCuts","Compare Pt J/psi and Psi(2S)",800,600);
 	TCanvas *canvasNonPromptyCompareAfterCuts = new TCanvas("canvasNonPromptyCompareAfterCuts","Compare Y J/psi and Psi(2S)",800,600);
 
-	/////////////////////////////////////////////////
-	///     Histogram Definitions for Analysis    ///
-	////////////////////////////////////////////////
-
-	/// define histos for Efficiency
+	/////////////////////////////////////////////////////////
+	///  Histogram Definitions for Extract to Acceptance  ///
+	/////////////////////////////////////////////////////////
 
 	// Prompt
 	TH1F *histPtEfficiencyJpsiPrompt = new TH1F("Prompt J/#it{#psi} Acceptance for p_{T}",";p_{T}(GeV/c);Acceptance",kBinRange_100,kPtRangeMin,kPtRangeMax);
@@ -371,13 +328,9 @@ int checkStackDQ_sgn()
 	TH1F *histYEfficiencyJpsiNonPrompt = new TH1F("NonPrompt J/#it{#psi} Acceptance for Y",";y;Acceptance",kBinRange_100,kYRangeMin,kYRangeMax);
 	TH1F *histYEfficiencyPsi2sNonPrompt = new TH1F("NonPrompt #it{#psi}(2S) Acceptance for Y",";y;Acceptance",kBinRange_100,kYRangeMin,kYRangeMax);
 
-	//                                                            Beauty Hadrons PDGs                                                       //
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// 511: B0 and anti-B0 || 521: B- and B+ || 531: B_s0 and anti-B_s0 || 541: B_c+ and B_c- || 5112: anti-Sigma_b+ and Sigma_b-           //
-	// 5122: anti-Lambda_b0 and Lambda_b0 || 5132: Xi_b- and anti-Xi_b+ || 5232: anti-Xi_b0  and Xi_b0 || 5332: anti-Omega_b+ and Omega_b-  //
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	/// define histos for Check Beauties
+	///////////////////////////////////////////////////////////
+	/// Histogram Definitions for Check Beauties Statistics ///
+	///////////////////////////////////////////////////////////
 
 	// From J/psi before cuts
 	TH1D *histBeautyMesonsFromJpsi = new TH1D("histBeautyMesonsFromJpsi","h_{B};Entries",4,0,4);
@@ -459,7 +412,9 @@ int checkStackDQ_sgn()
 	histBeautyBaryonsFromPsi2sAfterCuts->GetXaxis()->SetTitle("h_{B} Candidates");
 	histBeautyBaryonsFromPsi2sAfterCuts->GetYaxis()->SetTitle("Entries");
 
-	/// define histos for Statistics
+	//////////////////////////////////////////////////////////////////
+	/// Histogram Definetions for Check Daughter Pairs Statistics ///
+	////////////////////////////////////////////////////////////////
 
 	// From NonPrompt + Prompt J/psi before cuts
 	TH1D *histJpsiPairStatistics = new TH1D("histJpsiPairStatistics","",4,0,4);
@@ -582,27 +537,9 @@ int checkStackDQ_sgn()
 	histNonPromptPsi2sPairStatisticsAfterCuts->GetXaxis()->SetTitle("Pairs");
 	histNonPromptPsi2sPairStatisticsAfterCuts->GetYaxis()->SetTitle("Entries");
 
-/*
-	// From all quarkonium before cuts
-	TH1D *histQuarkoniumPairStatistics = new TH1D("histQuarkoniumPairStatistics","",4,0,4);
-	histQuarkoniumPairStatistics->GetXaxis()->SetBinLabel(1,"e^{-}");
-	histQuarkoniumPairStatistics->GetXaxis()->SetBinLabel(2,"e^{+}");
-	histQuarkoniumPairStatistics->GetXaxis()->SetBinLabel(3,"#mu^{-}");
-	histQuarkoniumPairStatistics->GetXaxis()->SetBinLabel(4,"#mu^{+}");;
-
-	// From all quarkonium after cuts
-	TH1D *histQuarkoniumPairStatisticsAfterCuts = new TH1D("histQuarkoniumPairStatisticsAfterCuts","",4,0,4);
-	histQuarkoniumPairStatisticsAfterCuts->GetXaxis()->SetBinLabel(1,"e^{-}");
-	histQuarkoniumPairStatisticsAfterCuts->GetXaxis()->SetBinLabel(2,"e^{+}");
-	histQuarkoniumPairStatisticsAfterCuts->GetXaxis()->SetBinLabel(3,"#mu^{-}");
-	histQuarkoniumPairStatisticsAfterCuts->GetXaxis()->SetBinLabel(4,"#mu^{+}");
-*/
-
-	/// define TH2F Histos for check correlations analysis Before cuts
-
-	// TODO : Pt versus rapidity ve pt versus eta ekle.
-
-
+	/////////////////////////////////////////////////////////
+	/// Histogram Definitions for Check Versus Kinematics ///
+	/////////////////////////////////////////////////////////
 
 	// Prompt J/psi and psi(2s) before cuts
 	TH2F *histPromptJpsiPhiVersusEta = new TH2F("histPromptJpsiPhiVersusEta","#varphi vs #eta;#varphi;#eta",100,-5,5,40,-5,5);
@@ -696,7 +633,7 @@ int checkStackDQ_sgn()
 
 	TH1F *histTPCHits = new TH1F("histTPCHits","TPC Hits;Hits;Entries",kBinRange_250,0,1000);
 	TH1F *histITSHits = new TH1F("histITSHits","ITS Hits;Hits;Entries",kBinRange_250,0,1000);
-	TH2F *histTPCVersusITS = new TH2F("histTPCVersusITS","#TPC Hits vs ITS Hits;#TPC Hits;#ITS Hits",250,0,1000,250,0,1000);
+	TH2F *histTPCVersusITS = new TH2F("histTPCVersusITS","TPC Hits vs ITS Hits;TPC Hits;ITS Hits",250,0,1000,250,0,1000);
 
 	//////////////////////////////////////////////////
 	/// Histograms For h_{B} Analysis pseudoproper ///
@@ -704,23 +641,23 @@ int checkStackDQ_sgn()
 
   //pseudoproper decay length
 
-	TH1F *histPseudoProperDecayLengthB0 = new TH1F("histPseudoProperDecayLengthB0",";p_{T}(GeV/c);Entries",kBinRange_100,-0.2,0.2);
-	TH1F *histPseudoProperDecayLengthBplus = new TH1F("histPseudoProperDecayLengthBplus",";p_{T}(GeV/c);Entries",kBinRange_100,-2,2);
-	TH1F *histPseudoProperDecayLengthBszero = new TH1F("histPseudoProperDecayLengthBszero",";p_{T}(GeV/c);Entries",kBinRange_100,-0.2,0.2);
-	TH1F *histPseudoProperDecayLengthBcplus = new TH1F("histPseudoProperDecayLengthBcplus",";p_{T}(GeV/c);Entries",kBinRange_100,-0.2,0.2);
-	TH1F *histPseudoProperDecayLengthSigmaB = new TH1F("histPseudoProperDecayLengthSigmaB ",";p_{T}(GeV/c);Entries",kBinRange_100,-0.2,0.2);
-	TH1F *histPseudoProperDecayLengthLambdaBzero = new TH1F("histPseudoProperDecayLengthLambdaBzero",";p_{T}(GeV/c);Entries",kBinRange_100,-0.2,0.2);
-	TH1F *histPseudoProperDecayLengthXiBminus = new TH1F("histPseudoProperDecayLengthXiBminus",";p_{T}(GeV/c);Entries",kBinRange_100,-0.2,0.2);
-	TH1F *histPseudoProperDecayLengthXiBzero = new TH1F("histPseudoProperDecayLengthXiBzero",";p_{T}(GeV/c);Entries",kBinRange_100,-0.2,0.2);
-	TH1F *histPseudoProperDecayLengthOmegaBminus = new TH1F("histPseudoProperDecayLengthOmegaBminus",";p_{T}(GeV/c);Entries",kBinRange_100,-0.2,0.2);
+	TH1F *histPseudoProperDecayLengthB0 = new TH1F("histPseudoProperDecayLengthB0",";Pseudo-proper decay length;Entries",kBinRange_100,-0.2,0.2);
+	TH1F *histPseudoProperDecayLengthBplus = new TH1F("histPseudoProperDecayLengthBplus",";Pseudo-proper decay length;Entries",kBinRange_100,-2,2);
+	TH1F *histPseudoProperDecayLengthBszero = new TH1F("histPseudoProperDecayLengthBszero",";Pseudo-proper decay length;Entries",kBinRange_100,-0.2,0.2);
+	TH1F *histPseudoProperDecayLengthBcplus = new TH1F("histPseudoProperDecayLengthBcplus",";Pseudo-proper decay length;Entries",kBinRange_100,-0.2,0.2);
+	TH1F *histPseudoProperDecayLengthSigmaB = new TH1F("histPseudoProperDecayLengthSigmaB ",";Pseudo-proper decay length;Entries",kBinRange_100,-0.2,0.2);
+	TH1F *histPseudoProperDecayLengthLambdaBzero = new TH1F("histPseudoProperDecayLengthLambdaBzero",";Pseudo-proper decay length;Entries",kBinRange_100,-0.2,0.2);
+	TH1F *histPseudoProperDecayLengthXiBminus = new TH1F("histPseudoProperDecayLengthXiBminus",";Pseudo-proper decay length;Entries",kBinRange_100,-0.2,0.2);
+	TH1F *histPseudoProperDecayLengthXiBzero = new TH1F("histPseudoProperDecayLengthXiBzero",";Pseudo-proper decay length;Entries",kBinRange_100,-0.2,0.2);
+	TH1F *histPseudoProperDecayLengthOmegaBminus = new TH1F("histPseudoProperDecayLengthOmegaBminus",";Pseudo-proper decay length;Entries",kBinRange_100,-0.2,0.2);
 
 	//pseudoproper decaytime
-	TH1F *histPseudoProperDecayTimeB0 = new TH1F("histPseudoProperDecayTimeB0",";p_{T}(GeV/c);Entries",kBinRange_100,-0.2,0.2);
-	TH1F *histPseudoProperDecayTimeBplus = new TH1F("histPseudoProperDecayTimeBplus",";p_{T}(GeV/c);Entries",kBinRange_100,-0.2,0.2);
+	TH1F *histPseudoProperDecayTimeB0 = new TH1F("histPseudoProperDecayTimeB0",";Pseudo-proper decay time;Entries",kBinRange_100,-0.2,0.2);
+	TH1F *histPseudoProperDecayTimeBplus = new TH1F("histPseudoProperDecayTimeBplus",";Pseudo-proper decay time;Entries",kBinRange_100,-0.2,0.2);
 
 
 	///////////////////////////////////////////////////////
-	/// Histograms For Quarkoniuö Analysis pseudoproper ///
+	/// Histograms For Quarkonium Analysis pseudoproper ///
 	///////////////////////////////////////////////////////
 
 	//pseudoproper decay length
@@ -805,168 +742,84 @@ int checkStackDQ_sgn()
 	histThetaJpsiNonPromptAfterCuts->Sumw2();
 	histThetaPsi2sNonPromptAfterCuts->Sumw2();
 
+	///////////////////////////////////////////////////////////////////
+	/// Histogram Definitions for Skimmed Data and Machine Learning ///
+	///////////////////////////////////////////////////////////////////
+
 	/// Define Branches Before Cuts
+
 	TTree *PromptJpsiTree = new TTree("PromptJpsiTree", "TTree with a structure before cuts");
-	PromptJpsiTree->Branch("kMCinvMassPair", &kMCinvMassPair, "kMCinvMassPair/F");
-	PromptJpsiTree->Branch("kMCPt", &kMCPt, "kMCPt/F");
-	PromptJpsiTree->Branch("kMCPtPair", &kMCPtPair, "kMCPtPair/F");
-	PromptJpsiTree->Branch("kMCY", &kMCY, "kMCY/F");
-	PromptJpsiTree->Branch("kMCEta", &kMCEta, "kMCEta/F");
-	PromptJpsiTree->Branch("kMCTheta", &kMCTheta, "kMCTheta/F");
-	PromptJpsiTree->Branch("kMCPhi", &kMCPhi, "kMCPhi/F");
+	PromptJpsiTree->Branch("kInvMassPair", &kInvMassPair, "kInvMassPair/F");
+	PromptJpsiTree->Branch("kPt", &kPt, "kPt/F");
+	PromptJpsiTree->Branch("kPtPair", &kPtPair, "kPtPair/F");
+	PromptJpsiTree->Branch("kY", &kY, "kY/F");
+	PromptJpsiTree->Branch("kEta", &kEta, "kEta/F");
+	PromptJpsiTree->Branch("kTheta", &kTheta, "kTheta/F");
+	PromptJpsiTree->Branch("kPhi", &kPhi, "kPhi/F");
 
 	TTree *PromptPsi2STree = new TTree("PromptPsi2STree", "TTree with a structure before cuts");
-	PromptPsi2STree->Branch("kMCinvMassPair", &kMCinvMassPair, "kMCinvMassPair/F");
-	PromptPsi2STree->Branch("kMCPt", &kMCPt, "kMCPt/F");
-	PromptPsi2STree->Branch("kMCPtPair", &kMCPtPair, "kMCPtPair/F");
-	PromptPsi2STree->Branch("kMCY", &kMCY, "kMCY/F");
-	PromptPsi2STree->Branch("kMCEta", &kMCEta, "kMCEta/F");
-	PromptPsi2STree->Branch("kMCTheta", &kMCTheta, "kMCTheta/F");
-	PromptPsi2STree->Branch("kMCPhi", &kMCPhi, "kMCPhi/F");
+	PromptPsi2STree->Branch("kInvMassPair", &kInvMassPair, "kInvMassPair/F");
+	PromptPsi2STree->Branch("kPt", &kPt, "kPt/F");
+	PromptPsi2STree->Branch("kPtPair", &kPtPair, "kPtPair/F");
+	PromptPsi2STree->Branch("kY", &kY, "kY/F");
+	PromptPsi2STree->Branch("kEta", &kEta, "kEta/F");
+	PromptPsi2STree->Branch("kTheta", &kTheta, "kTheta/F");
+	PromptPsi2STree->Branch("kPhi", &kPhi, "kPhi/F");
 
 	TTree *NonPromptJpsiTree = new TTree("NonPromptJpsiTree", "TTree with a structure before cuts");
-	NonPromptJpsiTree->Branch("kMCinvMassPair", &kMCinvMassPair, "kMCinvMassPair/F");
-	NonPromptJpsiTree->Branch("kMCPt", &kMCPt, "kMCPt/F");
-	NonPromptJpsiTree->Branch("kMCPtPair", &kMCPtPair, "kMCPtPair/F");
-	NonPromptJpsiTree->Branch("kMCY", &kMCY, "kMCY/F");
-	NonPromptJpsiTree->Branch("kMCEta", &kMCEta, "kMCEta/F");
-	NonPromptJpsiTree->Branch("kMCTheta", &kMCTheta, "kMCTheta/F");
-	NonPromptJpsiTree->Branch("kMCPhi", &kMCPhi, "kMCPhi/F");
+	NonPromptJpsiTree->Branch("kInvMassPair", &kInvMassPair, "kInvMassPair/F");
+	NonPromptJpsiTree->Branch("kPt", &kPt, "kPt/F");
+	NonPromptJpsiTree->Branch("kPtPair", &kPtPair, "kPtPair/F");
+	NonPromptJpsiTree->Branch("kY", &kY, "kY/F");
+	NonPromptJpsiTree->Branch("kEta", &kEta, "kEta/F");
+	NonPromptJpsiTree->Branch("kTheta", &kTheta, "kTheta/F");
+	NonPromptJpsiTree->Branch("kPhi", &kPhi, "kPhi/F");
 
 	TTree *NonPromptPsi2STree = new TTree("NonPromptPsi2STree", "TTree with a structure before cuts");
-	NonPromptPsi2STree->Branch("kMCinvMassPair", &kMCinvMassPair, "kMCinvMassPair/F");
-	NonPromptPsi2STree->Branch("kMCPt", &kMCPt, "kMCPt/F");
-	NonPromptPsi2STree->Branch("kMCPtPair", &kMCPtPair, "kMCPtPair/F");
-	NonPromptPsi2STree->Branch("kMCY", &kMCY, "kMCY/F");
-	NonPromptPsi2STree->Branch("kMCEta", &kMCEta, "kMCEta/F");
-	NonPromptPsi2STree->Branch("kMCTheta", &kMCTheta, "kMCTheta/F");
-	NonPromptPsi2STree->Branch("kMCPhi", &kMCPhi, "kMCPhi/F");
+	NonPromptPsi2STree->Branch("kInvMassPair", &kInvMassPair, "kInvMassPair/F");
+	NonPromptPsi2STree->Branch("kPt", &kPt, "kPt/F");
+	NonPromptPsi2STree->Branch("kPtPair", &kPtPair, "kPtPair/F");
+	NonPromptPsi2STree->Branch("kY", &kY, "kY/F");
+	NonPromptPsi2STree->Branch("kEta", &kEta, "kEta/F");
+	NonPromptPsi2STree->Branch("kTheta", &kTheta, "kTheta/F");
+	NonPromptPsi2STree->Branch("kPhi", &kPhi, "kPhi/F");
 
 	// Define Branches After Cuts
 	TTree *PromptJpsiTreeAfterCuts = new TTree("PromptJpsiTreeAfterCuts", "TTree with a structure before cuts");
-	PromptJpsiTreeAfterCuts->Branch("kMCinvMassPair", &kMCinvMassPairBranchCut, "kMCinvMassPair/F");
-	PromptJpsiTreeAfterCuts->Branch("kMCPt", &kMCPtBranchCut, "kMCPt/F");
-	PromptJpsiTreeAfterCuts->Branch("kMCPtPair", &kMCPtPairBranchCut, "kMCPtPair/F");
-	PromptJpsiTreeAfterCuts->Branch("kMCY", &kMCYBranchCut, "kMCY/F");
-	PromptJpsiTreeAfterCuts->Branch("kMCEta", &kMCEtaBranchCut, "kMCEta/F");
-	PromptJpsiTreeAfterCuts->Branch("kMCTheta", &kMCThetaBranchCut, "kMCTheta/F");
-	PromptJpsiTreeAfterCuts->Branch("kMCPhi", &kMCPhiBranchCut, "kMCPhi/F");
+	PromptJpsiTreeAfterCuts->Branch("kInvMassPair", &kInvMassPairBranchCut, "kInvMassPair/F");
+	PromptJpsiTreeAfterCuts->Branch("kPt", &kPtBranchCut, "kPt/F");
+	PromptJpsiTreeAfterCuts->Branch("kPtPair", &kPtPairBranchCut, "kPtPair/F");
+	PromptJpsiTreeAfterCuts->Branch("kY", &kYBranchCut, "kY/F");
+	PromptJpsiTreeAfterCuts->Branch("kEta", &kEtaBranchCut, "kEta/F");
+	PromptJpsiTreeAfterCuts->Branch("kTheta", &kThetaBranchCut, "kTheta/F");
+	PromptJpsiTreeAfterCuts->Branch("kPhi", &kPhiBranchCut, "kPhi/F");
 
 	TTree *PromptPsi2STreeAfterCuts = new TTree("PromptPsi2STreeAfterCuts", "TTree with a structure before cuts");
-	PromptPsi2STreeAfterCuts->Branch("kMCinvMassPair", &kMCinvMassPairBranchCut, "kMCinvMassPair/F");
-	PromptPsi2STreeAfterCuts->Branch("kMCPt", &kMCPtBranchCut, "kMCPt/F");
-	PromptPsi2STreeAfterCuts->Branch("kMCPtPair", &kMCPtPairBranchCut, "kMCPtPair/F");
-	PromptPsi2STreeAfterCuts->Branch("kMCY", &kMCYBranchCut, "kMCY/F");
-	PromptPsi2STreeAfterCuts->Branch("kMCEta", &kMCEtaBranchCut, "kMCEta/F");
-	PromptPsi2STreeAfterCuts->Branch("kMCTheta", &kMCThetaBranchCut, "kMCTheta/F");
-	PromptPsi2STreeAfterCuts->Branch("kMCPhi", &kMCPhiBranchCut, "kMCPhi/F");
+	PromptPsi2STreeAfterCuts->Branch("kInvMassPair", &kInvMassPairBranchCut, "kInvMassPair/F");
+	PromptPsi2STreeAfterCuts->Branch("kPt", &kPtBranchCut, "kPt/F");
+	PromptPsi2STreeAfterCuts->Branch("kPtPair", &kPtPairBranchCut, "kPtPair/F");
+	PromptPsi2STreeAfterCuts->Branch("kY", &kYBranchCut, "kY/F");
+	PromptPsi2STreeAfterCuts->Branch("kEta", &kEtaBranchCut, "kEta/F");
+	PromptPsi2STreeAfterCuts->Branch("kTheta", &kThetaBranchCut, "kTheta/F");
+	PromptPsi2STreeAfterCuts->Branch("kPhi", &kPhiBranchCut, "kPhi/F");
 
 	TTree *NonPromptJpsiTreeAfterCuts = new TTree("NonPromptJpsiTreeAfterCuts", "TTree with a structure before cuts");
-	NonPromptJpsiTreeAfterCuts->Branch("kMCinvMassPair", &kMCinvMassPairBranchCut, "kMCinvMassPair/F");
-	NonPromptJpsiTreeAfterCuts->Branch("kMCPt", &kMCPtBranchCut, "kMCPt/F");
-	NonPromptJpsiTreeAfterCuts->Branch("kMCPtPair", &kMCPtPairBranchCut, "kMCPtPair/F");
-	NonPromptJpsiTreeAfterCuts->Branch("kMCY", &kMCYBranchCut, "kMCY/F");
-	NonPromptJpsiTreeAfterCuts->Branch("kMCEta", &kMCEtaBranchCut, "kMCEta/F");
-	NonPromptJpsiTreeAfterCuts->Branch("kMCTheta", &kMCThetaBranchCut, "kMCTheta/F");
-	NonPromptJpsiTreeAfterCuts->Branch("kMCPhi", &kMCPhiBranchCut, "kMCPhi/F");
+	NonPromptJpsiTreeAfterCuts->Branch("kInvMassPair", &kInvMassPairBranchCut, "kInvMassPair/F");
+	NonPromptJpsiTreeAfterCuts->Branch("kPt", &kPtBranchCut, "kPt/F");
+	NonPromptJpsiTreeAfterCuts->Branch("kPtPair", &kPtPairBranchCut, "kPtPair/F");
+	NonPromptJpsiTreeAfterCuts->Branch("kY", &kYBranchCut, "kY/F");
+	NonPromptJpsiTreeAfterCuts->Branch("kEta", &kEtaBranchCut, "kEta/F");
+	NonPromptJpsiTreeAfterCuts->Branch("kTheta", &kThetaBranchCut, "kTheta/F");
+	NonPromptJpsiTreeAfterCuts->Branch("kPhi", &kPhiBranchCut, "kPhi/F");
 
 	TTree *NonPromptPsi2STreeAfterCuts = new TTree("NonPromptPsi2STreeAfterCuts", "TTree with a structure before cuts");
-	NonPromptPsi2STreeAfterCuts->Branch("kMCinvMassPair", &kMCinvMassPairBranchCut, "kMCinvMassPair/F");
-	NonPromptPsi2STreeAfterCuts->Branch("kMCPt", &kMCPtBranchCut, "kMCPt/F");
-	NonPromptPsi2STreeAfterCuts->Branch("kMCPtPair", &kMCPtPairBranchCut, "kMCPtPair/F");
-	NonPromptPsi2STreeAfterCuts->Branch("kMCY", &kMCYBranchCut, "kMCY/F");
-	NonPromptPsi2STreeAfterCuts->Branch("kMCEta", &kMCEtaBranchCut, "kMCEta/F");
-	NonPromptPsi2STreeAfterCuts->Branch("kMCTheta", &kMCThetaBranchCut, "kMCTheta/F");
-	NonPromptPsi2STreeAfterCuts->Branch("kMCPhi", &kMCPhiBranchCut, "kMCPhi/F");
-
-	///////////////////////////////
-	// Set Titles For Histograms //
-	//////////////////////////////
-
-	// J/Psi
-	histPtPairJpsiPrompt->SetTitle("p_{T} Pair Distribution");
-	histMassPairJpsiPrompt->SetTitle("Invariant Mass");
-	histYJpsiPrompt->SetTitle("Y Distribution");
-	histPtJpsiPrompt->SetTitle("p_{T} Distribution");
-	histEtaJpsiPrompt->SetTitle("#eta Distribution");
-	histThetaJpsiPrompt->SetTitle("#theta Distribution");
-	histPhiJpsiPrompt->SetTitle("#varphi Distribution");
-	//TH1F *histVxPairJpsiPrompt = new TH1F("VxPairJpsiPromptBeforeCuts",";p_{T}(GeV/c);Entries",kBinRange_100,0.,kPtPairRangeMax);
-	//TH1F *histVyPairJpsiPrompt = new TH1F("VyPairJpsiPromptBeforeCuts",";p_{T}(GeV/c);Entries",kBinRange_100,0.,kPtPairRangeMax);
-	//TH1F *histVzPairJpsiPrompt = new TH1F("VzPairJpsiPromptBeforeCuts",";p_{T}(GeV/c);Entries",kBinRange_100,0.,kPtPairRangeMax);
-
-
-
-	// Psi(2s)
-	histPtPairPsi2sPrompt->SetTitle("p_{T} Pair Distribution");
-	histMassPairPsi2sPrompt->SetTitle("Invariant Mass");
-	histYPsi2sPrompt->SetTitle("Y Distribution");
-	histPtPsi2sPrompt->SetTitle("p_{T} Distribution");
-	histEtaPsi2sPrompt->SetTitle("#eta Distribution");
-	histThetaPsi2sPrompt->SetTitle("#theta Distribution");
-	histPhiPsi2sPrompt->SetTitle("#varphi Distribution");
-
-	/// define histos prompt jpsi / psi2s after cuts
-
-	// J/Psi
-	histPtPairJpsiPromptAfterCuts->SetTitle("p_{T} Pair Distribution");
-	histMassPairJpsiPromptAfterCuts->SetTitle("Invariant Mass");
-	histYJpsiPromptAfterCuts->SetTitle("Y Distribution");
-	histPtJpsiPromptAfterCuts->SetTitle("p_{T} Distribution");
-	histEtaJpsiPromptAfterCuts->SetTitle("#eta Distribution");
-	histThetaJpsiPromptAfterCuts->SetTitle("#theta Distribution");
-	histPhiJpsiPromptAfterCuts->SetTitle("#varphi Distribution");
-	// Psi(2s)
-	histPtPairPsi2sPromptAfterCuts->SetTitle("p_{T} Pair Distribution");
-	histMassPairPsi2sPromptAfterCuts->SetTitle("Invariant Mass");
-	histYPsi2sPromptAfterCuts->SetTitle("Y Distribution");
-	histPtPsi2sPromptAfterCuts->SetTitle("p_{T} Distribution");
-	histEtaPsi2sPromptAfterCuts->SetTitle("#eta Distribution");
-	histThetaPsi2sPromptAfterCuts->SetTitle("#theta Distribution");
-	histPhiPsi2sPromptAfterCuts->SetTitle("#varphi Distribution");
-
-	/// define histos non-prompt jpsi / psi2s before cuts
-
-	// J/Psi
-	histPtPairJpsiNonPrompt->SetTitle("p_{T} Pair Distribution");
-	histMassPairJpsiNonPrompt->SetTitle("Invariant Mass");
-	histYJpsiNonPrompt->SetTitle("Y Distribution");
-	histPtJpsiNonPrompt->SetTitle("p_{T} Distribution");
-	histEtaJpsiNonPrompt->SetTitle("#eta Distribution");
-	histThetaJpsiNonPrompt->SetTitle("#theta Distribution");
-	histPhiJpsiNonPrompt->SetTitle("#varphi Distribution");
-	// BURAYA VERTEX EKLEDİM CHECK ET.
-	histVxPairJpsiNonPrompt->SetTitle("Vtx X");
-	histVyPairJpsiNonPrompt->SetTitle("Vtx Y");
-	histVzPairJpsiNonPrompt->SetTitle("Vtx Z");
-	histVertexPairJpsiNonPrompt->SetTitle("Vtx Pair");
-	// Psi(2s)
-	histPtPairPsi2sNonPrompt->SetTitle("p_{T} Pair Distribution");
-	histMassPairPsi2sNonPrompt->SetTitle("Invariant Mass");
-	histYPsi2sNonPrompt->SetTitle("Y Distribution");
-	histPtPsi2sNonPrompt->SetTitle("p_{T} Distribution");
-	histEtaPsi2sNonPrompt->SetTitle("#eta Distribution");
-	histThetaPsi2sNonPrompt->SetTitle("#theta Distribution");
-	histPhiPsi2sNonPrompt->SetTitle("#varphi Distribution");
-
-	/// define histos non-prompt jpsi / psi2s after cuts
-
-	// J/Psi
-	histPtPairJpsiNonPromptAfterCuts->SetTitle("p_{T} Pair Distribution");
-	histMassPairJpsiNonPromptAfterCuts->SetTitle("Invariant Mass");
-	histYJpsiNonPromptAfterCuts->SetTitle("Y Distribution");
-	histPtJpsiNonPromptAfterCuts->SetTitle("p_{T} Distribution");
-	histEtaJpsiNonPromptAfterCuts->SetTitle("#eta Distribution");
-	histThetaJpsiNonPromptAfterCuts->SetTitle("#theta Distribution");
-	histPhiJpsiNonPromptAfterCuts->SetTitle("#varphi Distribution");
-	// Psi(2s)
-	histPtPairPsi2sNonPromptAfterCuts->SetTitle("p_{T} Pair Distribution");
-	histMassPairPsi2sNonPromptAfterCuts->SetTitle("Invariant Mass");
-	histYPsi2sNonPromptAfterCuts->SetTitle("Y Distribution");
-	histPtPsi2sNonPromptAfterCuts->SetTitle("p_{T} Distribution");
-	histEtaPsi2sNonPromptAfterCuts->SetTitle("#eta Distribution");
-	histThetaPsi2sNonPromptAfterCuts->SetTitle("#theta Distribution");
-	histPhiPsi2sNonPromptAfterCuts->SetTitle("#varphi Distribution");
+	NonPromptPsi2STreeAfterCuts->Branch("kInvMassPair", &kInvMassPairBranchCut, "kInvMassPair/F");
+	NonPromptPsi2STreeAfterCuts->Branch("kPt", &kPtBranchCut, "kPt/F");
+	NonPromptPsi2STreeAfterCuts->Branch("kPtPair", &kPtPairBranchCut, "kPtPair/F");
+	NonPromptPsi2STreeAfterCuts->Branch("kY", &kYBranchCut, "kY/F");
+	NonPromptPsi2STreeAfterCuts->Branch("kEta", &kEtaBranchCut, "kEta/F");
+	NonPromptPsi2STreeAfterCuts->Branch("kTheta", &kThetaBranchCut, "kTheta/F");
+	NonPromptPsi2STreeAfterCuts->Branch("kPhi", &kPhiBranchCut, "kPhi/F");
 
 	/// J/Psi and Psi(2S) Pdg Codes
 	Int_t kMotherPdgCode[] = {443, 100443};
@@ -975,6 +828,11 @@ int checkStackDQ_sgn()
 
 	/// Dilepton Pairs Pdg Codes
 	Int_t kPairsPdgCode[] = {11,-11,13,-13};
+
+	Int_t kPairElectronPdg  = kPairsPdgCode[0];
+	Int_t kPairPositronPdg  = kPairsPdgCode[1];
+	Int_t kPairMuonPdg      = kPairsPdgCode[2];
+	Int_t kPairAntiMuonPdg  = kPairsPdgCode[3];
 
 	Bool_t isPairElectron;
 	Bool_t isPairPositron;
@@ -1057,6 +915,18 @@ int checkStackDQ_sgn()
 		Int_t kBeautyPdgCode[] = {511, 521, 531, 541, 5112, 5122, 5132, 5232, 5332};
 		Int_t kSizeBeautyPdgCode = sizeof(kBeautyPdgCode)/sizeof(Int_t);
 
+		/// Variables for Count histBeauties (PDG CODES)
+		Int_t FromBeauty;
+		Int_t kCandidateBzeroPdg 				= kBeautyPdgCode[0];
+		Int_t kCandidateBplusPdg 				= kBeautyPdgCode[1];
+		Int_t kCandidateBszeroPdg 			= kBeautyPdgCode[2];
+		Int_t kCandidateBcplusPdg 			= kBeautyPdgCode[3];
+		Int_t kCandidateSigmaBPdg 			= kBeautyPdgCode[4];
+		Int_t kCandidateLambdaBzeroPdg 	= kBeautyPdgCode[5];
+		Int_t kCandidateXiBminusPdg 		= kBeautyPdgCode[6];
+		Int_t kCandidateXiBzeroPdg 			= kBeautyPdgCode[7];
+		Int_t kCandidateOmegaBminusPdg 	= kBeautyPdgCode[8];
+
 		// Main Loop For MC Tracks
 		for (auto& t : *mctracks) {
 			if (t.isSecondary()) {
@@ -1090,7 +960,7 @@ int checkStackDQ_sgn()
 			Bool_t isPsi2S =  TMath::Abs(t.GetPdgCode()) == kMotherPdgCode[1];
 			if( isJpsi || isPsi2S ) {
 				// Daughters
-				o2::MCTrack *kMCPair=0x0; o2::MCTrack *kMCAntiPair=0x0;
+				o2::MCTrack *kPair=0x0; o2::MCTrack *kAntiPair=0x0;
 				// Charmonium
 				o2::MCTrack *kCandidateJpsi=0x0; o2::MCTrack *kCandidatePsi2S=0x0;
 				// Beauties
@@ -1163,22 +1033,22 @@ int checkStackDQ_sgn()
 						if (TMath::Abs(tdM->GetPdgCode()) == kBeautyPdgCode[7] ) kCandidateXiBzero = (o2::MCTrack*)tdM;
 						if (TMath::Abs(tdM->GetPdgCode()) == kBeautyPdgCode[8] ) kCandidateOmegaBminus = (o2::MCTrack*)tdM;
 
-						}
-					}
-				}
+					  }   // if (TMath::Abs(tdM->GetPdgCode()) == kBeautyPdgCode[i] )
+					} // for(int i=0; i<kSizeBeautyPdgCode; i++)
+				}  // if(!isPrompt)
 
 				/// Get Mother Tracks with Getter Method
-				kMCPt = t.GetPt();
-				kMCP = t.GetP();
-				kMCPhi = t.GetPhi();
-				kMCTheta = t.GetTheta();
-				kMCY = t.GetRapidity();
-				kMCEta = t.GetEta();
-				kMCPrimaryVx = t.Vx();
-				kMCPrimaryVy = t.Vy();
-				kMCPrimaryVz = t.Vz();
-				kMCMass = t.GetMass();
-				std::cout << "Track Mass: " << kMCMass << '\n';
+				kPt = t.GetPt();
+				kP = t.GetP();
+				kPhi = t.GetPhi();
+				kTheta = t.GetTheta();
+				kY = t.GetRapidity();
+				kEta = t.GetEta();
+				kPrimaryVx = t.Vx();
+				kPrimaryVy = t.Vy();
+				kPrimaryVz = t.Vz();
+				kMass = t.GetMass();
+				std::cout << "Track Mass: " << kMass << '\n';
 				/// Checking Daughters from Primary Vertex
 				kFirstDaughterTrackID  = (mcreader.getTrack(eventID, kFirstDaughterTrackID))->isPrimary() ? kFirstDaughterTrackID : -1;
 				kLastDaughterTrackID   = (mcreader.getTrack(eventID, kLastDaughterTrackID))->isPrimary() ? kLastDaughterTrackID : -1;
@@ -1191,17 +1061,40 @@ int checkStackDQ_sgn()
 				for(int idaugh=kFirstDaughterTrackID; idaugh<kLastDaughterTrackID+1; idaugh++ ) {
 					// kDaughterTrack track daughter demek. t ise motherları temsil eder.
 					auto kDaughterTrack = mcreader.getTrack(eventID, idaugh);
-					if(kDaughterTrack->GetPdgCode() == kMCPdgCode) kMCPair = (o2::MCTrack*)kDaughterTrack;
-					if(kDaughterTrack->GetPdgCode() == -1*kMCPdgCode) kMCAntiPair = (o2::MCTrack*)kDaughterTrack;
+					if(kDaughterTrack->GetPdgCode() == kSelectionPdg) 		kPair = (o2::MCTrack*)kDaughterTrack;
+					if(kDaughterTrack->GetPdgCode() == -1*kSelectionPdg) kAntiPair = (o2::MCTrack*)kDaughterTrack;
 				}
 
-				if((!kMCPair) || (!kMCAntiPair)) continue;
+				if((!kPair) || (!kAntiPair)) continue;
+
+				///////////////////////
+				/// Cut Definitions ///
+				///////////////////////
+
+				// TODO: Bunu cut definition için optimize et.
+				/*
+				Bool_t TrackBarrelCut = TMath::Abs(kPair->GetEta()) < 0.9 && TMath::Abs(kAntiPair->GetEta()) < 0.9 &&
+						                    TMath::Abs(kPair->GetRapidity()) < 0.9 && TMath::Abs(kAntiPair->GetRapidity()) < 0.9 &&
+																kPair->GetPt() > 1.0 && kAntiPair->GetPt() > 1.0;
+
+				Bool_t ForwardYCut 		=	kPair->GetEta() < -2.5 && kAntiPair->GetEta() < -2.5 && kPair->GetEta() > -4.0 && kAntiPair->GetEta() > -4.0 &&
+																kPair->GetRapidity() < -2.5 && kAntiPair->GetRapidity() < -2.5 && kPair->GetRapidity() > -4.0 && kAntiPair->GetRapidity() > -4.0 &&
+																kPair->GetPt() > 1.0 && kAntiPair->GetPt() > 1.0;
+																*/
+
+				//if(kMidYSimulation) TrackBarrelCut == kTRUE; ForwardYCut = kFALSE;
+				//if(kForwardYSimulation) TrackBarrelCut == kFALSE; ForwardYCut = kTRUE;
+
+				//TrackBarrelCut ? -->
+
+				// if(!TrackBarrelCut) continue;
+				// if(!kForwardYSimulation) continue;
 
 				// Check the Pairs
-				isPairElectron = kMCPair->GetPdgCode() == 11;
-				isPairPositron = kMCAntiPair->GetPdgCode() == -11;
-				isPairMuon     = kMCPair->GetPdgCode() == 13;
-				isPairAntiMuon = kMCAntiPair->GetPdgCode() == -13;
+				isPairElectron = kPair->GetPdgCode()     == kPairElectronPdg;
+				isPairPositron = kAntiPair->GetPdgCode() == kPairPositronPdg;
+				isPairMuon     = kPair->GetPdgCode() 		 == kPairMuonPdg;
+				isPairAntiMuon = kAntiPair->GetPdgCode() == kPairAntiMuonPdg;
 
 				/////
 
@@ -1223,21 +1116,20 @@ int checkStackDQ_sgn()
 					Double_t pdgMassMotherBzero = TDatabasePDG::Instance()->GetParticle(kBeautyPdgCode[0])->Mass();
 					Double_t momentumMotherBzero = kCandidateBzero->GetP();
 					Double_t ptMotherBzero = kCandidateBzero->GetPt();
-					Double_t pseudoProperDecayLengthB0 = ((kCandidateBzeroVx - kMCPrimaryVx) * kCandidateBzero->Px() / TMath::Abs(kCandidateBzero->GetPt())) + ((kCandidateBzeroVy - kMCPrimaryVy) * kCandidateBzero->Py() / TMath::Abs(kCandidateBzero->GetPt()));
+					Double_t pseudoProperDecayLengthB0 = ((kCandidateBzeroVx - kPrimaryVx) * kCandidateBzero->Px() / TMath::Abs(kCandidateBzero->GetPt())) + ((kCandidateBzeroVy - kPrimaryVy) * kCandidateBzero->Py() / TMath::Abs(kCandidateBzero->GetPt()));
 					Double_t pseudoProperDecayTimeB0 = pseudoProperDecayLengthB0 * pdgMassMotherBzero / ptMotherBzero;
 
 					histPseudoProperDecayLengthB0->Fill(pseudoProperDecayLengthB0);
 					histPseudoProperDecayTimeB0->Fill(pseudoProperDecayTimeB0);
 				}
-				// bug var fixle.
+				// TODO: bug var fixle.
 				if(kCandidateBplus){
 					if(kCandidateBplus->isSecondary()) { kCandidateBplusVx = kCandidateBplus->Vx(); kCandidateBplusVy = kCandidateBplus->Vy(); }
 					Double_t pdgMassMotherBplus = TDatabasePDG::Instance()->GetParticle(kBeautyPdgCode[1])->Mass();
 					Double_t momentumMotherBplus = kCandidateBplus->GetP();
 					Double_t ptMotherBplus = kCandidateBplus->GetPt();
-					Double_t pseudoProperDecayLengthBplus = ((kCandidateBplusVx - kMCPrimaryVx) * kCandidateBplus->Px() / TMath::Abs(kCandidateBplus->GetPt())) + ((kCandidateBplusVy - kMCPrimaryVy) * kCandidateBplus->Py() / TMath::Abs(kCandidateBplus->GetPt()));
+					Double_t pseudoProperDecayLengthBplus = ((kCandidateBplusVx - kPrimaryVx) * kCandidateBplus->Px() / TMath::Abs(kCandidateBplus->GetPt())) + ((kCandidateBplusVy - kPrimaryVy) * kCandidateBplus->Py() / TMath::Abs(kCandidateBplus->GetPt()));
 					Double_t pseudoProperDecayTimeBplus = pseudoProperDecayLengthBplus * pdgMassMotherBplus / ptMotherBplus;
-					//std::cout << pseudoProperDecayLengthBplus << '\n';
 
 					histPseudoProperDecayLengthBplus->Fill(pseudoProperDecayLengthBplus);
 					histPseudoProperDecayTimeBplus->Fill(pseudoProperDecayTimeBplus);
@@ -1247,7 +1139,7 @@ int checkStackDQ_sgn()
 					Double_t pdgMassMotherBszero = TDatabasePDG::Instance()->GetParticle(kBeautyPdgCode[2])->Mass();
 					Double_t momentumMotherBszero = kCandidateBszero->GetP();
 					Double_t ptMotherBszero = kCandidateBszero->GetPt();
-					Double_t pseudoProperDecayLengthBszero = ((kCandidateBszeroVx - kMCPrimaryVx) * kCandidateBszero->Px() / TMath::Abs(kCandidateBszero->GetPt())) + ((kCandidateBszeroVy - kMCPrimaryVy) * kCandidateBszero->Py() / TMath::Abs(kCandidateBszero->GetPt()));
+					Double_t pseudoProperDecayLengthBszero = ((kCandidateBszeroVx - kPrimaryVx) * kCandidateBszero->Px() / TMath::Abs(kCandidateBszero->GetPt())) + ((kCandidateBszeroVy - kPrimaryVy) * kCandidateBszero->Py() / TMath::Abs(kCandidateBszero->GetPt()));
 					histPseudoProperDecayLengthBszero->Fill(pseudoProperDecayLengthBszero);
 				}
 				if(kCandidateBcplus){
@@ -1255,7 +1147,7 @@ int checkStackDQ_sgn()
 					Double_t pdgMassMotherBcplus = TDatabasePDG::Instance()->GetParticle(kBeautyPdgCode[3])->Mass();
 					Double_t momentumMotherBcplus = kCandidateBcplus->GetP();
 					Double_t ptMotherBcplus = kCandidateBcplus->GetPt();
-					Double_t pseudoProperDecayLengthBcplus = ((kCandidateBcplusVx - kMCPrimaryVx) * kCandidateBcplus->Px() / TMath::Abs(kCandidateBcplus->GetPt())) + ((kCandidateBcplusVy - kMCPrimaryVy) * kCandidateBcplus->Py() / TMath::Abs(kCandidateBcplus->GetPt()));
+					Double_t pseudoProperDecayLengthBcplus = ((kCandidateBcplusVx - kPrimaryVx) * kCandidateBcplus->Px() / TMath::Abs(kCandidateBcplus->GetPt())) + ((kCandidateBcplusVy - kPrimaryVy) * kCandidateBcplus->Py() / TMath::Abs(kCandidateBcplus->GetPt()));
 					histPseudoProperDecayLengthBcplus->Fill(pseudoProperDecayLengthBcplus);
 				}
 				if(kCandidateSigmaB){
@@ -1263,7 +1155,7 @@ int checkStackDQ_sgn()
 					Double_t pdgMassMotherSigmaB = TDatabasePDG::Instance()->GetParticle(kBeautyPdgCode[4])->Mass();
 					Double_t momentumMotherSigmaB = kCandidateSigmaB->GetP();
 					Double_t ptMotherSigmaB = kCandidateSigmaB->GetPt();
-					Double_t pseudoProperDecayLengthSigmaB = ((kCandidateSigmaBVx - kMCPrimaryVx) * kCandidateSigmaB->Px() / TMath::Abs(kCandidateSigmaB->GetPt())) + ((kCandidateSigmaBVy - kMCPrimaryVy) * kCandidateSigmaB->Py() / TMath::Abs(kCandidateSigmaB->GetPt()));
+					Double_t pseudoProperDecayLengthSigmaB = ((kCandidateSigmaBVx - kPrimaryVx) * kCandidateSigmaB->Px() / TMath::Abs(kCandidateSigmaB->GetPt())) + ((kCandidateSigmaBVy - kPrimaryVy) * kCandidateSigmaB->Py() / TMath::Abs(kCandidateSigmaB->GetPt()));
 					histPseudoProperDecayLengthSigmaB->Fill(pseudoProperDecayLengthSigmaB);
 				}
 				if(kCandidateLambdaBzero){
@@ -1271,7 +1163,7 @@ int checkStackDQ_sgn()
 					Double_t pdgMassMotherLambdaBzero = TDatabasePDG::Instance()->GetParticle(kBeautyPdgCode[5])->Mass();
 					Double_t momentumMotherLambdaBzero = kCandidateLambdaBzero->GetP();
 					Double_t ptMotherLambdaBzero = kCandidateLambdaBzero->GetPt();
-					Double_t pseudoProperDecayLengthLambdaBzero = ((kCandidateLambdaBzeroVx - kMCPrimaryVx) * kCandidateLambdaBzero->Px() / TMath::Abs(kCandidateLambdaBzero->GetPt())) + ((kCandidateLambdaBzeroVy - kMCPrimaryVy) * kCandidateLambdaBzero->Py() / TMath::Abs(kCandidateLambdaBzero->GetPt()));
+					Double_t pseudoProperDecayLengthLambdaBzero = ((kCandidateLambdaBzeroVx - kPrimaryVx) * kCandidateLambdaBzero->Px() / TMath::Abs(kCandidateLambdaBzero->GetPt())) + ((kCandidateLambdaBzeroVy - kPrimaryVy) * kCandidateLambdaBzero->Py() / TMath::Abs(kCandidateLambdaBzero->GetPt()));
 					histPseudoProperDecayLengthLambdaBzero->Fill(pseudoProperDecayLengthLambdaBzero);
 				}
 				if(kCandidateXiBminus){
@@ -1279,7 +1171,7 @@ int checkStackDQ_sgn()
 					Double_t pdgMassMotherXiBminus = TDatabasePDG::Instance()->GetParticle(kBeautyPdgCode[6])->Mass();
 					Double_t momentumMotherXiBminus = kCandidateXiBminus->GetP();
 					Double_t ptMotherXiBminus = kCandidateXiBminus->GetPt();
-					Double_t pseudoProperDecayLengthXiBminus = ((kCandidateXiBminusVx - kMCPrimaryVx) * kCandidateXiBminus->Px() / TMath::Abs(kCandidateXiBminus->GetPt())) + ((kCandidateXiBminusVy - kMCPrimaryVy) * kCandidateXiBminus->Py() / TMath::Abs(kCandidateXiBminus->GetPt()));
+					Double_t pseudoProperDecayLengthXiBminus = ((kCandidateXiBminusVx - kPrimaryVx) * kCandidateXiBminus->Px() / TMath::Abs(kCandidateXiBminus->GetPt())) + ((kCandidateXiBminusVy - kPrimaryVy) * kCandidateXiBminus->Py() / TMath::Abs(kCandidateXiBminus->GetPt()));
 					histPseudoProperDecayLengthXiBminus->Fill(pseudoProperDecayLengthXiBminus);
 				}
 
@@ -1289,7 +1181,7 @@ int checkStackDQ_sgn()
 					Double_t pdgMassMotherXiBzero = TDatabasePDG::Instance()->GetParticle(kBeautyPdgCode[7])->Mass();
 					Double_t momentumMotherXiBzero = kCandidateXiBzero->GetP();
 					Double_t ptMotherXiBzero = kCandidateXiBzero->GetPt();
-					Double_t pseudoProperDecayLengthXiBzero = ((kCandidateXiBzeroVx - kMCPrimaryVx) * kCandidateXiBzero->Px() / TMath::Abs(kCandidateXiBzero->GetPt())) + ((kCandidateXiBzeroVy - kMCPrimaryVy) * kCandidateXiBzero->Py() / TMath::Abs(kCandidateXiBzero->GetPt()));
+					Double_t pseudoProperDecayLengthXiBzero = ((kCandidateXiBzeroVx - kPrimaryVx) * kCandidateXiBzero->Px() / TMath::Abs(kCandidateXiBzero->GetPt())) + ((kCandidateXiBzeroVy - kPrimaryVy) * kCandidateXiBzero->Py() / TMath::Abs(kCandidateXiBzero->GetPt()));
 					histPseudoProperDecayLengthXiBzero->Fill(pseudoProperDecayLengthXiBzero);
 				}
 				if(kCandidateOmegaBminus){
@@ -1298,7 +1190,7 @@ int checkStackDQ_sgn()
 					Double_t pdgMassMotherOmegaBminus = TDatabasePDG::Instance()->GetParticle(kBeautyPdgCode[8])->Mass();
 					Double_t momentumMotherOmegaBminus = kCandidateOmegaBminus->GetP();
 					Double_t ptMotherOmegaBminus = kCandidateOmegaBminus->GetPt();
-					Double_t pseudoProperDecayLengthOmegaBminus = ((kCandidateOmegaBminusVx - kMCPrimaryVx) * kCandidateOmegaBminus->Px() / TMath::Abs(kCandidateOmegaBminus->GetPt())) + ((kCandidateOmegaBminusVy - kMCPrimaryVy) * kCandidateOmegaBminus->Py() / TMath::Abs(kCandidateOmegaBminus->GetPt()));
+					Double_t pseudoProperDecayLengthOmegaBminus = ((kCandidateOmegaBminusVx - kPrimaryVx) * kCandidateOmegaBminus->Px() / TMath::Abs(kCandidateOmegaBminus->GetPt())) + ((kCandidateOmegaBminusVy - kPrimaryVy) * kCandidateOmegaBminus->Py() / TMath::Abs(kCandidateOmegaBminus->GetPt()));
 					histPseudoProperDecayLengthOmegaBminus->Fill(pseudoProperDecayLengthOmegaBminus);
 				}
 
@@ -1313,7 +1205,7 @@ int checkStackDQ_sgn()
 					Double_t pdgMassMotherJpsi = TDatabasePDG::Instance()->GetParticle(443)->Mass();
 					Double_t momentumMotherJpsi = kCandidateJpsi->GetP();
 					Double_t ptMotherJpsi = kCandidateJpsi->GetPt();
-					Double_t pseudoProperDecayLengthJpsi = ((kCandidateJpsiVx - kMCPrimaryVx) * kCandidateJpsi->Px() / TMath::Abs(kCandidateJpsi->GetPt())) + ((kCandidateJpsiVy - kMCPrimaryVy) * kCandidateJpsi->Py() / TMath::Abs(kCandidateJpsi->GetPt()));
+					Double_t pseudoProperDecayLengthJpsi = ((kCandidateJpsiVx - kPrimaryVx) * kCandidateJpsi->Px() / TMath::Abs(kCandidateJpsi->GetPt())) + ((kCandidateJpsiVy - kPrimaryVy) * kCandidateJpsi->Py() / TMath::Abs(kCandidateJpsi->GetPt()));
 					Double_t pseudoProperDecayTimeJpsi = pseudoProperDecayLengthJpsi * pdgMassMotherJpsi / ptMotherJpsi;
 
 					histPseudoProperDecayLengthJpsi->Fill(pseudoProperDecayLengthJpsi);
@@ -1360,79 +1252,51 @@ int checkStackDQ_sgn()
 				if(isPairMuon && isPsi2S && !isPrompt) histNonPromptPsi2sPairStatistics->Fill(2.5);
 				if(isPairAntiMuon && isPsi2S && !isPrompt) histNonPromptPsi2sPairStatistics->Fill(3.5);
 
-				// Quarkonium
-				/*
-				if(kMCPair->GetPdgCode() == 11 && isJpsi) histJpsiPairStatistics
-				if(kMCAntiPair->GetPdgCode() == -11 && isJpsi)
-				if(kMCPair->GetPdgCode() == 13 && isJpsi)
-				if(kMCAntiPair->GetPdgCode() == -13 && isJpsi)
-				*/
-
-				// VERTEX PSEUDOPROPER DECAY VS.
-
-    	  //Double_t vertexDistance = vertexB0->DistanceToVertex(primaryVertex);
-      	//Double_t normDecayLength = candidateB0->NormalizedDecayLength();
-    	  //Double_t pdgMassMother = TDatabasePDG::Instance()->GetParticle(511)->Mass();
-      	//Double_t pseudoProperDecayLength = ((vertexB0->GetX() - primaryVertex->GetX()) * candidateB0->Px() / TMath::Abs(candidateB0->Pt())) + ((vertexB0->GetY() - primaryVertex->GetY()) * candidateB0->Py() / TMath::Abs(candidateB0->Pt()));
-    	  //Double_t pseudoProperDecayTime = pseudoProperDecayLength * pdgMassMother / ptMother;
-    	  //Double_t decayTime = vertexDistance / (299792458 * TMath::Sqrt(1 / ((pdgMassMother * pdgMassMother / (momentumMother * momentumMother)) + 1)));
-
 
 				// evaluate inv mass, pt, y of pairs before cuts
-				//kMCMassPair1 = TDatabasePDG::Instance()->GetParticle(kMCPdgCode)->Mass();
-				//kMCMassPair2 = TDatabasePDG::Instance()->GetParticle(kMCPdgCode)->Mass();
-				// TODO: ANTİPAİR VE PAİRİN PDG KODLARI MC TRACKLERDEN ALIYOM. AMA BAZEN 1 İ FALSE DÖNÜP BREAK SEGMENT VİO VEREBİLİR. HATA HANDLER YAP.
-				kMCMassPair1 = TDatabasePDG::Instance()->GetParticle(kMCAntiPair->GetPdgCode())->Mass();
-				kMCMassPair2 = TDatabasePDG::Instance()->GetParticle(kMCPair->GetPdgCode())->Mass();
-				kMCinvMassPair =  kMCMassPair1*kMCMassPair1+kMCMassPair2*kMCMassPair2 + 2.0*(TMath::Sqrt(kMCMassPair1*kMCMassPair1+kMCPair->GetP()*kMCPair->GetP())*TMath::Sqrt(kMCMassPair2*kMCMassPair2+kMCAntiPair->GetP()*kMCAntiPair->GetP()) - kMCPair->Px()*kMCAntiPair->Px() - kMCPair->Py()*kMCAntiPair->Py() - kMCPair->Pz()*kMCAntiPair->Pz());
-				kMCinvMassPair = TMath::Sqrt(kMCinvMassPair);
+				// TODO: ANTİPAİR VE PAİRİN PDG KODLARI MC TRACKLERDEN ALIYOM. AMA BAZEN 1 İ FALSE DÖNÜP BREAK SEGMENT ... VEREBİLİR. HATA HANDLER YAP.
+				kMassPair1 = TDatabasePDG::Instance()->GetParticle(kAntiPair->GetPdgCode())->Mass();
+				kMassPair2 = TDatabasePDG::Instance()->GetParticle(kPair->GetPdgCode())->Mass();
+				kInvMassPair =  kMassPair1*kMassPair1+kMassPair2*kMassPair2 + 2.0*(TMath::Sqrt(kMassPair1*kMassPair1+kPair->GetP()*kPair->GetP())*TMath::Sqrt(kMassPair2*kMassPair2+kAntiPair->GetP()*kAntiPair->GetP()) - kPair->Px()*kAntiPair->Px() - kPair->Py()*kAntiPair->Py() - kPair->Pz()*kAntiPair->Pz());
+				kInvMassPair = TMath::Sqrt(kInvMassPair);
 				////
-				kMCPx = kMCPair->Px()+kMCAntiPair->Px();
-				kMCPy = kMCPair->Py()+kMCAntiPair->Py();
-				kMCPtPair = TMath::Sqrt(kMCPx*kMCPx + kMCPy*kMCPy);
-				//kMCPtPair = kMCPtPair.GetPt();
+				kPx = kPair->Px()+kAntiPair->Px();
+				kPy = kPair->Py()+kAntiPair->Py();
+				kPtPair = TMath::Sqrt(kPx*kPx + kPy*kPy);
+				//kPtPair = kPtPair.GetPt(); TODO: BU GETTERİ KULLANMANIN YOLUNU BUL.
 				////
-				// Vertexi cm'ye çevirmek için 1000 ile çarp
-				kMCVx = (kMCPair->Vx()+kMCAntiPair->Vx());
-				kMCVy = (kMCPair->Vy()+kMCAntiPair->Vy());
-				kMCVz = (kMCPair->Vz()+kMCAntiPair->Vz());
-				kMCVPair = TMath::Sqrt(kMCVx*kMCVx+kMCVy*kMCPy);
+				// TODO: Vertexin birimini kontro let.
+				kVx = (kPair->Vx()+kAntiPair->Vx());
+				kVy = (kPair->Vy()+kAntiPair->Vy());
+				kVz = (kPair->Vz()+kAntiPair->Vz());
+				kVertexPair = TMath::Sqrt(kVx*kVx+kVy*kPy);
 
 
 				/// JPSİ DENEME PSEUDO VERTEX
+				// TODO: J/psi için bu doğru mu? Check et.
 				if(isJpsi){
 				// Get Secondary Vertex
 				//if(kCandidateJpsi->isSecondary()) kCandidateJpsiVx = kCandidateJpsi->Vx(); kCandidateJpsiVy = kCandidateJpsi->Vy();
 				Double_t pdgMassMotherJpsi = TDatabasePDG::Instance()->GetParticle(443)->Mass();
 				//Double_t momentumMotherJpsi = kCandidateJpsi->GetP();
 				//Double_t ptMotherJpsi = kCandidateJpsi->GetPt();
-				Double_t pseudoProperDecayLengthJpsi = ((kMCVx - kMCPrimaryVx) * kMCPx / kMCPtPair) + ((kMCVy - kMCPrimaryVy) * kMCPy / kMCPtPair);
-				Double_t pseudoProperDecayTimeJpsi = pseudoProperDecayLengthJpsi * kMCinvMassPair / kMCPtPair;
+				Double_t pseudoProperDecayLengthJpsi = ((kVx - kPrimaryVx) * kPx / kPtPair) + ((kVy - kPrimaryVy) * kPy / kPtPair);
+				Double_t pseudoProperDecayTimeJpsi = pseudoProperDecayLengthJpsi * kInvMassPair / kPtPair;
 
 				histPseudoProperDecayLengthJpsi->Fill(pseudoProperDecayLengthJpsi);
 				histPseudoProperDecayTimeJpsi->Fill(pseudoProperDecayTimeJpsi);
 				}
-
-
-
-				//std::cout << "Total Vertex x = " <<  kMCVx << '\n';
-				//std::cout << "Total Vertex y = " << kMCVy << '\n';
-
-				//std::cout << kCandidateJpsi->GetPdgCode() << '\n';
-
-
-				//if(kMCinvMassPair > 3.4 || kMCinvMassPair < 2.8) continue;
 
 				/////////////////////////////////
 				// Fill Histograms Before Cuts //
 				/////////////////////////////////
 
 				/// fiducial cut on generator level for the definition of the acceptance before the application of the single track cuts.
-				if(midysim     == kTRUE) kGeneratorLevelYCut = TMath::Abs(kMCY) < 0.9;
-				if(forwardysim == kTRUE) kGeneratorLevelYCut = kMCY < -2.5 && kMCY > -4.0;
+				if(kMidYSimulation     == kTRUE) kGeneratorLevelYCut = TMath::Abs(kY) < 0.9;
+				if(kForwardYSimulation == kTRUE) kGeneratorLevelYCut = kY < -2.5 && kY > -4.0;
 
-				//if(midysim     == kTRUE) kGeneratorLevelEtaCut = TMath::Abs(kMCEta) < 0.9;
-				//if(forwardysim == kTRUE) kGeneratorLevelEtaCut = kMCEta < -2.5 && kMCEta > -4.0;
+				//if(kMidYSimulation     == kTRUE) kGeneratorLevelEtaCut = TMath::Abs(kEta) < 0.9;
+				//if(kForwardYSimulation == kTRUE) kGeneratorLevelEtaCut = kEta < -2.5 && kEta > -4.0;
 
 				// Applying to cuts at generator level
 				if(kGeneratorLevelYCut == kFALSE) continue;
@@ -1440,91 +1304,91 @@ int checkStackDQ_sgn()
 
 				//// fill prompt
 				if(isPrompt && isJpsi) {
-					histPtPairJpsiPrompt->Fill(kMCPtPair);
-					histMassPairJpsiPrompt->Fill(kMCinvMassPair);
-					histPtJpsiPrompt->Fill(kMCPt);
-					histYJpsiPrompt->Fill(kMCY);
-					histEtaJpsiPrompt->Fill(kMCEta);
-					histThetaJpsiPrompt->Fill(kMCTheta);
-					histPhiJpsiPrompt->Fill(kMCPhi);
+					histPtPairJpsiPrompt->Fill(kPtPair);
+					histMassPairJpsiPrompt->Fill(kInvMassPair);
+					histPtJpsiPrompt->Fill(kPt);
+					histYJpsiPrompt->Fill(kY);
+					histEtaJpsiPrompt->Fill(kEta);
+					histThetaJpsiPrompt->Fill(kTheta);
+					histPhiJpsiPrompt->Fill(kPhi);
 					histOrigin->Fill(0.5);
 					PromptJpsiTree->Fill();
 					// Analysis Fill
-					histPromptJpsiPhiVersusEta->Fill(kMCPhi,kMCEta);
-					histPromptJpsiEtaVersusPt->Fill(kMCEta,kMCPt);
-					histPromptJpsiEtaVersusPtPair->Fill(kMCEta,kMCPtPair);
-					histPromptJpsiMassVersusPt->Fill(kMCinvMassPair,kMCPt);
-					histPromptJpsiMassVersusPtPair->Fill(kMCinvMassPair,kMCPtPair);
-					histPromptJpsiMassVersusY->Fill(kMCinvMassPair,kMCY);
-					histPromptJpsiPtVersusY->Fill(kMCPt,kMCY);
-					histPromptJpsiPtPairVersusY->Fill(kMCPtPair,kMCY);
-					histPromptJpsiPtPairVersusPt->Fill(kMCPtPair,kMCPt);
+					histPromptJpsiPhiVersusEta->Fill(kPhi,kEta);
+					histPromptJpsiEtaVersusPt->Fill(kEta,kPt);
+					histPromptJpsiEtaVersusPtPair->Fill(kEta,kPtPair);
+					histPromptJpsiMassVersusPt->Fill(kInvMassPair,kPt);
+					histPromptJpsiMassVersusPtPair->Fill(kInvMassPair,kPtPair);
+					histPromptJpsiMassVersusY->Fill(kInvMassPair,kY);
+					histPromptJpsiPtVersusY->Fill(kPt,kY);
+					histPromptJpsiPtPairVersusY->Fill(kPtPair,kY);
+					histPromptJpsiPtPairVersusPt->Fill(kPtPair,kPt);
 				}else if(isPrompt && isPsi2S) {
-					histPtPairPsi2sPrompt->Fill(kMCPtPair);
-					histMassPairPsi2sPrompt->Fill(kMCinvMassPair);
-					histPtPsi2sPrompt->Fill(kMCPt);
-					histYPsi2sPrompt->Fill(kMCY);
-					histEtaPsi2sPrompt->Fill(kMCEta);
-					histThetaPsi2sPrompt->Fill(kMCTheta);
-					histPhiPsi2sPrompt->Fill(kMCPhi);
+					histPtPairPsi2sPrompt->Fill(kPtPair);
+					histMassPairPsi2sPrompt->Fill(kInvMassPair);
+					histPtPsi2sPrompt->Fill(kPt);
+					histYPsi2sPrompt->Fill(kY);
+					histEtaPsi2sPrompt->Fill(kEta);
+					histThetaPsi2sPrompt->Fill(kTheta);
+					histPhiPsi2sPrompt->Fill(kPhi);
 					histOrigin->Fill(2.5);
 					PromptPsi2STree->Fill();
 					// Analysis Fill
-					histPromptPsi2sPhiVersusEta->Fill(kMCPhi,kMCEta);
-					histPromptPsi2sEtaVersusPt->Fill(kMCEta,kMCPt);
-					histPromptPsi2sEtaVersusPtPair->Fill(kMCEta,kMCPtPair);
-					histPromptPsi2sMassVersusPt->Fill(kMCinvMassPair,kMCPt);
-					histPromptPsi2sMassVersusPtPair->Fill(kMCinvMassPair,kMCPtPair);
-					histPromptPsi2sMassVersusY->Fill(kMCinvMassPair,kMCY);
-					histPromptPsi2sPtVersusY->Fill(kMCPt,kMCY);
-					histPromptPsi2sPtPairVersusY->Fill(kMCPtPair,kMCY);
-					histPromptPsi2sPtPairVersusPt->Fill(kMCPtPair,kMCPt);
+					histPromptPsi2sPhiVersusEta->Fill(kPhi,kEta);
+					histPromptPsi2sEtaVersusPt->Fill(kEta,kPt);
+					histPromptPsi2sEtaVersusPtPair->Fill(kEta,kPtPair);
+					histPromptPsi2sMassVersusPt->Fill(kInvMassPair,kPt);
+					histPromptPsi2sMassVersusPtPair->Fill(kInvMassPair,kPtPair);
+					histPromptPsi2sMassVersusY->Fill(kInvMassPair,kY);
+					histPromptPsi2sPtVersusY->Fill(kPt,kY);
+					histPromptPsi2sPtPairVersusY->Fill(kPtPair,kY);
+					histPromptPsi2sPtPairVersusPt->Fill(kPtPair,kPt);
 				}
 				//// fill non prompt
 				else if(!isPrompt && isJpsi) {
-					histPtPairJpsiNonPrompt->Fill(kMCPtPair);
-					histMassPairJpsiNonPrompt->Fill(kMCinvMassPair);
-					histPtJpsiNonPrompt->Fill(kMCPt);
-					histYJpsiNonPrompt->Fill(kMCY);
-					histEtaJpsiNonPrompt->Fill(kMCEta);
-					histThetaJpsiNonPrompt->Fill(kMCTheta);
-					histPhiJpsiNonPrompt->Fill(kMCPhi);
-					histVxPairJpsiNonPrompt->Fill(kMCVx);
-					histVyPairJpsiNonPrompt->Fill(kMCVy);
-					histVzPairJpsiNonPrompt->Fill(kMCVz);
-					histVertexPairJpsiNonPrompt->Fill(kMCVPair);
+					histPtPairJpsiNonPrompt->Fill(kPtPair);
+					histMassPairJpsiNonPrompt->Fill(kInvMassPair);
+					histPtJpsiNonPrompt->Fill(kPt);
+					histYJpsiNonPrompt->Fill(kY);
+					histEtaJpsiNonPrompt->Fill(kEta);
+					histThetaJpsiNonPrompt->Fill(kTheta);
+					histPhiJpsiNonPrompt->Fill(kPhi);
+					histVxPairJpsiNonPrompt->Fill(kVx);
+					histVyPairJpsiNonPrompt->Fill(kVy);
+					histVzPairJpsiNonPrompt->Fill(kVz);
+					histVertexPairJpsiNonPrompt->Fill(kVertexPair);
 					histOrigin->Fill(1.5);
 					NonPromptJpsiTree->Fill();
 					// Analysis Fill
-					histNonPromptJpsiPhiVersusEta->Fill(kMCPhi,kMCEta);
-					histNonPromptJpsiEtaVersusPt->Fill(kMCEta,kMCPt);
-					histNonPromptJpsiEtaVersusPtPair->Fill(kMCEta,kMCPtPair);
-					histNonPromptJpsiMassVersusPt->Fill(kMCinvMassPair,kMCPt);
-					histNonPromptJpsiMassVersusPtPair->Fill(kMCinvMassPair,kMCPtPair);
-					histNonPromptJpsiMassVersusY->Fill(kMCinvMassPair,kMCY);
-					histNonPromptJpsiPtVersusY->Fill(kMCPt,kMCY);
-					histNonPromptJpsiPtPairVersusY->Fill(kMCPtPair,kMCY);
-					histNonPromptJpsiPtPairVersusPt->Fill(kMCPtPair,kMCPt);
+					histNonPromptJpsiPhiVersusEta->Fill(kPhi,kEta);
+					histNonPromptJpsiEtaVersusPt->Fill(kEta,kPt);
+					histNonPromptJpsiEtaVersusPtPair->Fill(kEta,kPtPair);
+					histNonPromptJpsiMassVersusPt->Fill(kInvMassPair,kPt);
+					histNonPromptJpsiMassVersusPtPair->Fill(kInvMassPair,kPtPair);
+					histNonPromptJpsiMassVersusY->Fill(kInvMassPair,kY);
+					histNonPromptJpsiPtVersusY->Fill(kPt,kY);
+					histNonPromptJpsiPtPairVersusY->Fill(kPtPair,kY);
+					histNonPromptJpsiPtPairVersusPt->Fill(kPtPair,kPt);
 				}else if(!isPrompt && isPsi2S) {
-					histPtPairPsi2sNonPrompt->Fill(kMCPtPair);
-					histMassPairPsi2sNonPrompt->Fill(kMCinvMassPair);
-					histPtPsi2sNonPrompt->Fill(kMCPt);
-					histYPsi2sNonPrompt->Fill(kMCY);
-					histEtaPsi2sNonPrompt->Fill(kMCEta);
-					histThetaPsi2sNonPrompt->Fill(kMCTheta);
-					histPhiPsi2sNonPrompt->Fill(kMCPhi);
+					histPtPairPsi2sNonPrompt->Fill(kPtPair);
+					histMassPairPsi2sNonPrompt->Fill(kInvMassPair);
+					histPtPsi2sNonPrompt->Fill(kPt);
+					histYPsi2sNonPrompt->Fill(kY);
+					histEtaPsi2sNonPrompt->Fill(kEta);
+					histThetaPsi2sNonPrompt->Fill(kTheta);
+					histPhiPsi2sNonPrompt->Fill(kPhi);
 					histOrigin->Fill(3.5);
 					NonPromptPsi2STree->Fill();
 					// Analysis Fill
-					histNonPromptPsi2sPhiVersusEta->Fill(kMCPhi,kMCEta);
-					histNonPromptPsi2sEtaVersusPt->Fill(kMCEta,kMCPt);
-					histNonPromptPsi2sEtaVersusPtPair->Fill(kMCEta,kMCPtPair);
-					histNonPromptPsi2sMassVersusPt->Fill(kMCinvMassPair,kMCPt);
-					histNonPromptPsi2sMassVersusPtPair->Fill(kMCinvMassPair,kMCPtPair);
-					histNonPromptPsi2sMassVersusY->Fill(kMCinvMassPair,kMCY);
-					histNonPromptPsi2sPtVersusY->Fill(kMCPt,kMCY);
-					histNonPromptPsi2sPtPairVersusY->Fill(kMCPtPair,kMCY);
-					histNonPromptPsi2sPtPairVersusPt->Fill(kMCPtPair,kMCPt);
+					histNonPromptPsi2sPhiVersusEta->Fill(kPhi,kEta);
+					histNonPromptPsi2sEtaVersusPt->Fill(kEta,kPt);
+					histNonPromptPsi2sEtaVersusPtPair->Fill(kEta,kPtPair);
+					histNonPromptPsi2sMassVersusPt->Fill(kInvMassPair,kPt);
+					histNonPromptPsi2sMassVersusPtPair->Fill(kInvMassPair,kPtPair);
+					histNonPromptPsi2sMassVersusY->Fill(kInvMassPair,kY);
+					histNonPromptPsi2sPtVersusY->Fill(kPt,kY);
+					histNonPromptPsi2sPtPairVersusY->Fill(kPtPair,kY);
+					histNonPromptPsi2sPtPairVersusPt->Fill(kPtPair,kPt);
 				}
 
 				//////////////////////////////////
@@ -1540,59 +1404,59 @@ int checkStackDQ_sgn()
 					if (TMath::Abs(tdM->GetPdgCode()) == kBeautyPdgCode[i]) {
 						FromBeauty = TMath::Abs(tdM->GetPdgCode());
 						if(!isPrompt && isJpsi) {
-							if(FromBeauty == kCandidateBeautyMotherBzero) {
+							if(FromBeauty == kCandidateBzeroPdg) {
 								histBeautyMesonsFromJpsi->Fill(0.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherBplus) {
+							if(FromBeauty == kCandidateBplusPdg) {
 								histBeautyMesonsFromJpsi->Fill(1.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherBszero) {
+							if(FromBeauty == kCandidateBszeroPdg) {
 								histBeautyMesonsFromJpsi->Fill(2.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherBcplus) {
+							if(FromBeauty == kCandidateBcplusPdg) {
 								histBeautyMesonsFromJpsi->Fill(3.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherSigmaB) {
+							if(FromBeauty == kCandidateSigmaBPdg) {
 								histBeautyBaryonsFromJpsi->Fill(0.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherLambdaBzero) {
+							if(FromBeauty == kCandidateLambdaBzeroPdg) {
 								histBeautyBaryonsFromJpsi->Fill(1.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherXiBminus) {
+							if(FromBeauty == kCandidateXiBminusPdg) {
 								histBeautyBaryonsFromJpsi->Fill(2.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherXiBzero) {
+							if(FromBeauty == kCandidateXiBzeroPdg) {
 								histBeautyBaryonsFromJpsi->Fill(3.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherOmegaBminus) {
+							if(FromBeauty == kCandidateOmegaBminusPdg) {
 								histBeautyBaryonsFromPsi2s->Fill(4.5);
 							}
 						}else if(!isPrompt && isPsi2S) {
-							if(FromBeauty == kCandidateBeautyMotherBzero) {
+							if(FromBeauty == kCandidateBzeroPdg) {
 								histBeautyMesonsFromPsi2s->Fill(0.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherBplus) {
+							if(FromBeauty == kCandidateBplusPdg) {
 								histBeautyMesonsFromPsi2s->Fill(1.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherBszero) {
+							if(FromBeauty == kCandidateBszeroPdg) {
 								histBeautyMesonsFromPsi2s->Fill(2.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherBcplus) {
+							if(FromBeauty == kCandidateBcplusPdg) {
 								histBeautyMesonsFromPsi2s->Fill(3.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherSigmaB) {
+							if(FromBeauty == kCandidateSigmaBPdg) {
 								histBeautyBaryonsFromPsi2s->Fill(0.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherLambdaBzero) {
+							if(FromBeauty == kCandidateLambdaBzeroPdg) {
 								histBeautyBaryonsFromPsi2s->Fill(1.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherXiBminus) {
+							if(FromBeauty == kCandidateXiBminusPdg) {
 								histBeautyBaryonsFromPsi2s->Fill(2.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherXiBzero) {
+							if(FromBeauty == kCandidateXiBzeroPdg) {
 								histBeautyBaryonsFromPsi2s->Fill(3.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherOmegaBminus) {
+							if(FromBeauty == kCandidateOmegaBminusPdg) {
 								histBeautyBaryonsFromPsi2s->Fill(4.5);
 							}
 						} // if(!isPrompt && isJpsi)
@@ -1620,14 +1484,14 @@ int checkStackDQ_sgn()
 				//------------------------------------------------------------------//
 
 				// Cut Definition Part. You can add specific kinematic cuts here.
-				kPtCut = kMCPair->GetPt() > 1.0 && kMCAntiPair->GetPt() > 1.0;
-				if(midysim == kTRUE) {
-					kEtaCut    =   TMath::Abs(kMCPair->GetEta()) < 0.9 && TMath::Abs(kMCAntiPair->GetEta()) < 0.9;
-					kYCut      =   TMath::Abs(kMCPair->GetRapidity()) < 0.9 && TMath::Abs(kMCAntiPair->GetRapidity()) < 0.9;
+				kPtCut = kPair->GetPt() > 1.0 && kAntiPair->GetPt() > 1.0;
+				if(kMidYSimulation == kTRUE) {
+					kEtaCut    =   TMath::Abs(kPair->GetEta()) < 0.9 && TMath::Abs(kAntiPair->GetEta()) < 0.9;
+					kYCut      =   TMath::Abs(kPair->GetRapidity()) < 0.9 && TMath::Abs(kAntiPair->GetRapidity()) < 0.9;
 				}
-				if(forwardysim == kTRUE) {
-					kEtaCut    =   kMCPair->GetEta() < -2.5 && kMCAntiPair->GetEta() < -2.5 && kMCPair->GetEta() > -4.0 && kMCAntiPair->GetEta() > -4.0;
-					kYCut      =   kMCPair->GetRapidity() < -2.5 && kMCAntiPair->GetRapidity() < -2.5 && kMCPair->GetRapidity() > -4.0 && kMCAntiPair->GetRapidity() > -4.0;
+				if(kForwardYSimulation == kTRUE) {
+					kEtaCut    =   kPair->GetEta() < -2.5 && kAntiPair->GetEta() < -2.5 && kPair->GetEta() > -4.0 && kAntiPair->GetEta() > -4.0;
+					kYCut      =   kPair->GetRapidity() < -2.5 && kAntiPair->GetRapidity() < -2.5 && kPair->GetRapidity() > -4.0 && kAntiPair->GetRapidity() > -4.0;
 				}
 
 				// Applying The Cuts
@@ -1670,41 +1534,41 @@ int checkStackDQ_sgn()
 				if(isPairAntiMuon && isPsi2S && !isPrompt) histNonPromptPsi2sPairStatisticsAfterCuts->Fill(3.5);
 
 				//// re-evaluate inv mass, pt, y of pairs after cuts
-				kMCMassPair1 = TDatabasePDG::Instance()->GetParticle(kMCPdgCode)->Mass();
-				kMCMassPair2 = TDatabasePDG::Instance()->GetParticle(kMCPdgCode)->Mass();
-				kMCinvMassPair =  kMCMassPair1*kMCMassPair1+kMCMassPair2*kMCMassPair2 + 2.0*(TMath::Sqrt(kMCMassPair1*kMCMassPair1+kMCPair->GetP()*kMCPair->GetP())*TMath::Sqrt(kMCMassPair2*kMCMassPair2+kMCAntiPair->GetP()*kMCAntiPair->GetP()) - kMCPair->Px()*kMCAntiPair->Px() - kMCPair->Py()*kMCAntiPair->Py() - kMCPair->Pz()*kMCAntiPair->Pz());
-				kMCinvMassPair = TMath::Sqrt(kMCinvMassPair);
+				kMassPair1 = TDatabasePDG::Instance()->GetParticle(kSelectionPdg)->Mass();
+				kMassPair2 = TDatabasePDG::Instance()->GetParticle(kSelectionPdg)->Mass();
+				kInvMassPair =  kMassPair1*kMassPair1+kMassPair2*kMassPair2 + 2.0*(TMath::Sqrt(kMassPair1*kMassPair1+kPair->GetP()*kPair->GetP())*TMath::Sqrt(kMassPair2*kMassPair2+kAntiPair->GetP()*kAntiPair->GetP()) - kPair->Px()*kAntiPair->Px() - kPair->Py()*kAntiPair->Py() - kPair->Pz()*kAntiPair->Pz());
+				kInvMassPair = TMath::Sqrt(kInvMassPair);
 				////
-				kMCPx = kMCPair->Px()+kMCAntiPair->Px();
-				kMCPy = kMCPair->Py()+kMCAntiPair->Py();
-				kMCPtPair = TMath::Sqrt(kMCPx*kMCPx + kMCPy*kMCPy);
+				kPx = kPair->Px()+kAntiPair->Px();
+				kPy = kPair->Py()+kAntiPair->Py();
+				kPtPair = TMath::Sqrt(kPx*kPx + kPy*kPy);
 
 				// invMass cut
 				/*
 				if(isJpsi){
-			  	invMassCutJpsi  = kMCinvMassPair > 2.8 && kMCinvMassPair < 3.3;
+			  	kInvMassCutJpsi  = kInvMassPair > 2.8 && kInvMassPair < 3.3;
 					histMassPairJpsiPromptAfterCuts->GetXaxis()->SetRangeUser(2.8,3.3);
 					histMassPairJpsiNonPromptAfterCuts->GetXaxis()->SetRangeUser(2.8,3.3);
 				}
 
 				if(isPsi2S){
-					invMassCutPsi2s = kMCinvMassPair > 3.4 && kMCinvMassPair < 3.9;
+					kInvMassCutPsi2s = kInvMassPair > 3.4 && kInvMassPair < 3.9;
 					histMassPairPsi2sPromptAfterCuts->GetXaxis()->SetRangeUser(3.4,3.9);
 					histMassPairPsi2sNonPromptAfterCuts->GetXaxis()->SetRangeUser(3.4,3.9);
 				}
 
-				if(invMassCutJpsi   == kFALSE) continue;
-				if(invMassCutPsi2s  == kFALSE) continue;
+				if(kInvMassCutJpsi   == kFALSE) continue;
+				if(kInvMassCutPsi2s  == kFALSE) continue;
 				*/
 
 				// some adressing for re-fillable branches after Cuts
-				kMCinvMassPairBranchCut = kMCinvMassPair;
-				kMCPtPairBranchCut = kMCPtPair;
-				kMCPtBranchCut = kMCPt;
-				kMCYBranchCut = kMCY;
-				kMCEtaBranchCut = kMCEta;
-				kMCThetaBranchCut = kMCTheta;
-				kMCPhiBranchCut = kMCPhi;
+				kInvMassPairBranchCut = kInvMassPair;
+				kPtPairBranchCut = kPtPair;
+				kPtBranchCut = kPt;
+				kYBranchCut = kY;
+				kEtaBranchCut = kEta;
+				kThetaBranchCut = kTheta;
+				kPhiBranchCut = kPhi;
 
 				////////////////////////////////
 				// Fill Histograms After Cuts //
@@ -1712,99 +1576,99 @@ int checkStackDQ_sgn()
 
 				//// fill prompt
 				if(isPrompt && isJpsi) {
-					histPtPairJpsiPromptAfterCuts->Fill(kMCPtPair);
-					histMassPairJpsiPromptAfterCuts->Fill(kMCinvMassPair);
-					histPtJpsiPromptAfterCuts->Fill(kMCPt);
-					histYJpsiPromptAfterCuts->Fill(kMCY);
-					histEtaJpsiPromptAfterCuts->Fill(kMCEta);
-					histThetaJpsiPromptAfterCuts->Fill(kMCTheta);
-					histPhiJpsiPromptAfterCuts->Fill(kMCPhi);
-					histPtEfficiencyJpsiPrompt->Fill(kMCPt);
-					histPtPairEfficiencyJpsiPrompt->Fill(kMCPtPair);
-					histYEfficiencyJpsiPrompt->Fill(kMCY);
+					histPtPairJpsiPromptAfterCuts->Fill(kPtPair);
+					histMassPairJpsiPromptAfterCuts->Fill(kInvMassPair);
+					histPtJpsiPromptAfterCuts->Fill(kPt);
+					histYJpsiPromptAfterCuts->Fill(kY);
+					histEtaJpsiPromptAfterCuts->Fill(kEta);
+					histThetaJpsiPromptAfterCuts->Fill(kTheta);
+					histPhiJpsiPromptAfterCuts->Fill(kPhi);
+					histPtEfficiencyJpsiPrompt->Fill(kPt);
+					histPtPairEfficiencyJpsiPrompt->Fill(kPtPair);
+					histYEfficiencyJpsiPrompt->Fill(kY);
 					histOriginAfterCuts->Fill(0.5);
 					PromptJpsiTreeAfterCuts->Fill();
 					// Analysis Fill
-					histPromptJpsiPhiVersusEtaAfterCuts->Fill(kMCPhi,kMCEta);
-					histPromptJpsiEtaVersusPtAfterCuts->Fill(kMCEta,kMCPt);
-					histPromptJpsiEtaVersusPtPairAfterCuts->Fill(kMCEta,kMCPtPair);
-					histPromptJpsiMassVersusPtAfterCuts->Fill(kMCinvMassPair,kMCPt);
-					histPromptJpsiMassVersusPtPairAfterCuts->Fill(kMCinvMassPair,kMCPtPair);
-					histPromptJpsiMassVersusYAfterCuts->Fill(kMCinvMassPair,kMCY);
-					histPromptJpsiPtVersusYAfterCuts->Fill(kMCPt,kMCY);
-					histPromptJpsiPtPairVersusYAfterCuts->Fill(kMCPtPair,kMCY);
-					histPromptJpsiPtPairVersusPtAfterCuts->Fill(kMCPtPair,kMCPt);
+					histPromptJpsiPhiVersusEtaAfterCuts->Fill(kPhi,kEta);
+					histPromptJpsiEtaVersusPtAfterCuts->Fill(kEta,kPt);
+					histPromptJpsiEtaVersusPtPairAfterCuts->Fill(kEta,kPtPair);
+					histPromptJpsiMassVersusPtAfterCuts->Fill(kInvMassPair,kPt);
+					histPromptJpsiMassVersusPtPairAfterCuts->Fill(kInvMassPair,kPtPair);
+					histPromptJpsiMassVersusYAfterCuts->Fill(kInvMassPair,kY);
+					histPromptJpsiPtVersusYAfterCuts->Fill(kPt,kY);
+					histPromptJpsiPtPairVersusYAfterCuts->Fill(kPtPair,kY);
+					histPromptJpsiPtPairVersusPtAfterCuts->Fill(kPtPair,kPt);
 				}else if(isPrompt && isPsi2S) {
-					histPtPairPsi2sPromptAfterCuts->Fill(kMCPtPair);
-					histMassPairPsi2sPromptAfterCuts->Fill(kMCinvMassPair);
-					histPtPsi2sPromptAfterCuts->Fill(kMCPt);
-					histYPsi2sPromptAfterCuts->Fill(kMCY);
-					histEtaPsi2sPromptAfterCuts->Fill(kMCEta);
-					histThetaPsi2sPromptAfterCuts->Fill(kMCTheta);
-					histPhiPsi2sPromptAfterCuts->Fill(kMCPhi);
-					histPtEfficiencyPsi2sPrompt->Fill(kMCPt);
-					histPtPairEfficiencyPsi2sPrompt->Fill(kMCPtPair);
-					histYEfficiencyPsi2sPrompt->Fill(kMCY);
+					histPtPairPsi2sPromptAfterCuts->Fill(kPtPair);
+					histMassPairPsi2sPromptAfterCuts->Fill(kInvMassPair);
+					histPtPsi2sPromptAfterCuts->Fill(kPt);
+					histYPsi2sPromptAfterCuts->Fill(kY);
+					histEtaPsi2sPromptAfterCuts->Fill(kEta);
+					histThetaPsi2sPromptAfterCuts->Fill(kTheta);
+					histPhiPsi2sPromptAfterCuts->Fill(kPhi);
+					histPtEfficiencyPsi2sPrompt->Fill(kPt);
+					histPtPairEfficiencyPsi2sPrompt->Fill(kPtPair);
+					histYEfficiencyPsi2sPrompt->Fill(kY);
 					histOriginAfterCuts->Fill(2.5);
 					PromptPsi2STreeAfterCuts->Fill();
 					// Analysis Fill
-					histPromptPsi2sPhiVersusEtaAfterCuts->Fill(kMCPhi,kMCEta);
-					histPromptPsi2sEtaVersusPtAfterCuts->Fill(kMCEta,kMCPt);
-					histPromptPsi2sEtaVersusPtPairAfterCuts->Fill(kMCEta,kMCPtPair);
-					histPromptPsi2sMassVersusPtAfterCuts->Fill(kMCinvMassPair,kMCPt);
-					histPromptPsi2sMassVersusPtPairAfterCuts->Fill(kMCinvMassPair,kMCPtPair);
-					histPromptPsi2sMassVersusYAfterCuts->Fill(kMCinvMassPair,kMCY);
-					histPromptPsi2sPtVersusYAfterCuts->Fill(kMCPt,kMCY);
-					histPromptPsi2sPtPairVersusYAfterCuts->Fill(kMCPtPair,kMCY);
-					histPromptPsi2sPtPairVersusPtAfterCuts->Fill(kMCPtPair,kMCPt);
+					histPromptPsi2sPhiVersusEtaAfterCuts->Fill(kPhi,kEta);
+					histPromptPsi2sEtaVersusPtAfterCuts->Fill(kEta,kPt);
+					histPromptPsi2sEtaVersusPtPairAfterCuts->Fill(kEta,kPtPair);
+					histPromptPsi2sMassVersusPtAfterCuts->Fill(kInvMassPair,kPt);
+					histPromptPsi2sMassVersusPtPairAfterCuts->Fill(kInvMassPair,kPtPair);
+					histPromptPsi2sMassVersusYAfterCuts->Fill(kInvMassPair,kY);
+					histPromptPsi2sPtVersusYAfterCuts->Fill(kPt,kY);
+					histPromptPsi2sPtPairVersusYAfterCuts->Fill(kPtPair,kY);
+					histPromptPsi2sPtPairVersusPtAfterCuts->Fill(kPtPair,kPt);
 				}
 				//// fill non prompt
 				else if(!isPrompt && isJpsi) {
-					histPtPairJpsiNonPromptAfterCuts->Fill(kMCPtPair);
-					histMassPairJpsiNonPromptAfterCuts->Fill(kMCinvMassPair);
-					histPtJpsiNonPromptAfterCuts->Fill(kMCPt);
-					histYJpsiNonPromptAfterCuts->Fill(kMCY);
-					histEtaJpsiNonPromptAfterCuts->Fill(kMCEta);
-					histThetaJpsiNonPromptAfterCuts->Fill(kMCTheta);
-					histPhiJpsiNonPromptAfterCuts->Fill(kMCPhi);
-					histPtEfficiencyJpsiNonPrompt->Fill(kMCPt);
-					histPtPairEfficiencyJpsiNonPrompt->Fill(kMCPtPair);
-					histYEfficiencyJpsiNonPrompt->Fill(kMCY);
+					histPtPairJpsiNonPromptAfterCuts->Fill(kPtPair);
+					histMassPairJpsiNonPromptAfterCuts->Fill(kInvMassPair);
+					histPtJpsiNonPromptAfterCuts->Fill(kPt);
+					histYJpsiNonPromptAfterCuts->Fill(kY);
+					histEtaJpsiNonPromptAfterCuts->Fill(kEta);
+					histThetaJpsiNonPromptAfterCuts->Fill(kTheta);
+					histPhiJpsiNonPromptAfterCuts->Fill(kPhi);
+					histPtEfficiencyJpsiNonPrompt->Fill(kPt);
+					histPtPairEfficiencyJpsiNonPrompt->Fill(kPtPair);
+					histYEfficiencyJpsiNonPrompt->Fill(kY);
 					histOriginAfterCuts->Fill(1.5);
 					NonPromptJpsiTreeAfterCuts->Fill();
 					// Analysis Fill
-					histNonPromptJpsiPhiVersusEtaAfterCuts->Fill(kMCPhi,kMCEta);
-					histNonPromptJpsiEtaVersusPtAfterCuts->Fill(kMCEta,kMCPt);
-					histNonPromptJpsiEtaVersusPtPairAfterCuts->Fill(kMCEta,kMCPtPair);
-					histNonPromptJpsiMassVersusPtAfterCuts->Fill(kMCinvMassPair,kMCPt);
-					histNonPromptJpsiMassVersusPtPairAfterCuts->Fill(kMCinvMassPair,kMCPtPair);
-					histNonPromptJpsiMassVersusYAfterCuts->Fill(kMCinvMassPair,kMCY);
-					histNonPromptJpsiPtVersusYAfterCuts->Fill(kMCPt,kMCY);
-					histNonPromptJpsiPtPairVersusYAfterCuts->Fill(kMCPtPair,kMCY);
-					histNonPromptJpsiPtPairVersusPtAfterCuts->Fill(kMCPtPair,kMCPt);
+					histNonPromptJpsiPhiVersusEtaAfterCuts->Fill(kPhi,kEta);
+					histNonPromptJpsiEtaVersusPtAfterCuts->Fill(kEta,kPt);
+					histNonPromptJpsiEtaVersusPtPairAfterCuts->Fill(kEta,kPtPair);
+					histNonPromptJpsiMassVersusPtAfterCuts->Fill(kInvMassPair,kPt);
+					histNonPromptJpsiMassVersusPtPairAfterCuts->Fill(kInvMassPair,kPtPair);
+					histNonPromptJpsiMassVersusYAfterCuts->Fill(kInvMassPair,kY);
+					histNonPromptJpsiPtVersusYAfterCuts->Fill(kPt,kY);
+					histNonPromptJpsiPtPairVersusYAfterCuts->Fill(kPtPair,kY);
+					histNonPromptJpsiPtPairVersusPtAfterCuts->Fill(kPtPair,kPt);
 				}else if(!isPrompt && isPsi2S) {
-					histPtPairPsi2sNonPromptAfterCuts->Fill(kMCPtPair);
-					histMassPairPsi2sNonPromptAfterCuts->Fill(kMCinvMassPair);
-					histPtPsi2sNonPromptAfterCuts->Fill(kMCPt);
-					histYPsi2sNonPromptAfterCuts->Fill(kMCY);
-					histEtaPsi2sNonPromptAfterCuts->Fill(kMCEta);
-					histThetaPsi2sNonPromptAfterCuts->Fill(kMCTheta);
-					histPhiPsi2sNonPromptAfterCuts->Fill(kMCPhi);
-					histPtEfficiencyPsi2sNonPrompt->Fill(kMCPt);
-					histPtPairEfficiencyPsi2sNonPrompt->Fill(kMCPtPair);
-					histYEfficiencyPsi2sPrompt->Fill(kMCY);
+					histPtPairPsi2sNonPromptAfterCuts->Fill(kPtPair);
+					histMassPairPsi2sNonPromptAfterCuts->Fill(kInvMassPair);
+					histPtPsi2sNonPromptAfterCuts->Fill(kPt);
+					histYPsi2sNonPromptAfterCuts->Fill(kY);
+					histEtaPsi2sNonPromptAfterCuts->Fill(kEta);
+					histThetaPsi2sNonPromptAfterCuts->Fill(kTheta);
+					histPhiPsi2sNonPromptAfterCuts->Fill(kPhi);
+					histPtEfficiencyPsi2sNonPrompt->Fill(kPt);
+					histPtPairEfficiencyPsi2sNonPrompt->Fill(kPtPair);
+					histYEfficiencyPsi2sPrompt->Fill(kY);
 					histOriginAfterCuts->Fill(3.5);
 					NonPromptPsi2STreeAfterCuts->Fill();
 					// Analysis Fill
-					histNonPromptPsi2sPhiVersusEtaAfterCuts->Fill(kMCPhi,kMCEta);
-					histNonPromptPsi2sEtaVersusPtAfterCuts->Fill(kMCEta,kMCPt);
-					histNonPromptPsi2sEtaVersusPtPairAfterCuts->Fill(kMCEta,kMCPtPair);
-					histNonPromptPsi2sMassVersusPtAfterCuts->Fill(kMCinvMassPair,kMCPt);
-					histNonPromptPsi2sMassVersusPtPairAfterCuts->Fill(kMCinvMassPair,kMCPtPair);
-					histNonPromptPsi2sMassVersusYAfterCuts->Fill(kMCinvMassPair,kMCY);
-					histNonPromptPsi2sPtVersusYAfterCuts->Fill(kMCPt,kMCY);
-					histNonPromptPsi2sPtPairVersusYAfterCuts->Fill(kMCPtPair,kMCY);
-					histNonPromptPsi2sPtPairVersusPtAfterCuts->Fill(kMCPtPair,kMCPt);
+					histNonPromptPsi2sPhiVersusEtaAfterCuts->Fill(kPhi,kEta);
+					histNonPromptPsi2sEtaVersusPtAfterCuts->Fill(kEta,kPt);
+					histNonPromptPsi2sEtaVersusPtPairAfterCuts->Fill(kEta,kPtPair);
+					histNonPromptPsi2sMassVersusPtAfterCuts->Fill(kInvMassPair,kPt);
+					histNonPromptPsi2sMassVersusPtPairAfterCuts->Fill(kInvMassPair,kPtPair);
+					histNonPromptPsi2sMassVersusYAfterCuts->Fill(kInvMassPair,kY);
+					histNonPromptPsi2sPtVersusYAfterCuts->Fill(kPt,kY);
+					histNonPromptPsi2sPtPairVersusYAfterCuts->Fill(kPtPair,kY);
+					histNonPromptPsi2sPtPairVersusPtAfterCuts->Fill(kPtPair,kPt);
 				}
 
 				//////////////////////////////////
@@ -1820,59 +1684,59 @@ int checkStackDQ_sgn()
 					if (TMath::Abs(tdM->GetPdgCode()) == kBeautyPdgCode[i]) {
 						FromBeauty = TMath::Abs(tdM->GetPdgCode());
 						if(!isPrompt && isJpsi) {
-							if(FromBeauty == kCandidateBeautyMotherBzero) {
+							if(FromBeauty == kCandidateBzeroPdg) {
 								histBeautyMesonsFromJpsiAfterCuts->Fill(0.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherBplus) {
+							if(FromBeauty == kCandidateBplusPdg) {
 								histBeautyMesonsFromJpsiAfterCuts->Fill(1.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherBszero) {
+							if(FromBeauty == kCandidateBszeroPdg) {
 								histBeautyMesonsFromJpsiAfterCuts->Fill(2.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherBcplus) {
+							if(FromBeauty == kCandidateBcplusPdg) {
 								histBeautyMesonsFromJpsiAfterCuts->Fill(3.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherSigmaB) {
+							if(FromBeauty == kCandidateSigmaBPdg) {
 								histBeautyBaryonsFromJpsiAfterCuts->Fill(0.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherLambdaBzero) {
+							if(FromBeauty == kCandidateLambdaBzeroPdg) {
 								histBeautyBaryonsFromJpsiAfterCuts->Fill(1.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherXiBminus) {
+							if(FromBeauty == kCandidateXiBminusPdg) {
 								histBeautyBaryonsFromJpsiAfterCuts->Fill(2.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherXiBzero) {
+							if(FromBeauty == kCandidateXiBzeroPdg) {
 								histBeautyBaryonsFromJpsiAfterCuts->Fill(3.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherOmegaBminus) {
+							if(FromBeauty == kCandidateOmegaBminusPdg) {
 								histBeautyBaryonsFromPsi2sAfterCuts->Fill(4.5);
 							}
 						}else if(!isPrompt && isPsi2S) {
-							if(FromBeauty == kCandidateBeautyMotherBzero) {
+							if(FromBeauty == kCandidateBzeroPdg) {
 								histBeautyMesonsFromPsi2sAfterCuts->Fill(0.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherBplus) {
+							if(FromBeauty == kCandidateBplusPdg) {
 								histBeautyMesonsFromPsi2sAfterCuts->Fill(1.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherBszero) {
+							if(FromBeauty == kCandidateBszeroPdg) {
 								histBeautyMesonsFromPsi2sAfterCuts->Fill(2.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherBcplus) {
+							if(FromBeauty == kCandidateBcplusPdg) {
 								histBeautyMesonsFromPsi2sAfterCuts->Fill(3.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherSigmaB) {
+							if(FromBeauty == kCandidateSigmaBPdg) {
 								histBeautyBaryonsFromPsi2sAfterCuts->Fill(0.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherLambdaBzero) {
+							if(FromBeauty == kCandidateLambdaBzeroPdg) {
 								histBeautyBaryonsFromPsi2sAfterCuts->Fill(1.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherXiBminus) {
+							if(FromBeauty == kCandidateXiBminusPdg) {
 								histBeautyBaryonsFromPsi2sAfterCuts->Fill(2.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherXiBzero) {
+							if(FromBeauty == kCandidateXiBzeroPdg) {
 								histBeautyBaryonsFromPsi2sAfterCuts->Fill(3.5);
 							}
-							if(FromBeauty == kCandidateBeautyMotherOmegaBminus) {
+							if(FromBeauty == kCandidateOmegaBminusPdg) {
 								histBeautyBaryonsFromPsi2sAfterCuts->Fill(4.5);
 							}
 						} // else if(!isPrompt && isPsi2S)
@@ -1880,25 +1744,20 @@ int checkStackDQ_sgn()
 				}  // for(int i=0; i<kSizeBeautyPdgCode; i++)
 			} // if( isJpsi || isPsi2S )
 			// TODO : ADD DESTRUCTOR
-			//~o2::MCTrack<float>::kMCPair() = default;
+			//~o2::MCTrack<float>::kPair() = default;
 			//~o2::MCTrack() = default;
 			//~o2::MCTrackT();
 			//~o2::MCTrack();
-			//o2::MCTrack *kMCPair
+			//o2::MCTrack *kPair
 			//~MCTrackT() = default;
 			//~mctracks() = default;
 			//~*mctracks() = default;
-			//~kMCPtPair() = default;
-			//~kMCAntiPair() = default;
+			//~kPtPair() = default;
+			//~kAntiPair() = default;
 			//~(o2::MCTrack*)kDaughterTrack() = default;
-			//std::cout << "DENEME\n" << kMCPtPair << '\n';
+			//std::cout << "DENEME\n" << kPtPair << '\n';
 
 		} // for (auto& t : *mctracks)
-
-		//Int_t invMassPairArray[];
-		//Int_t PtArray[];
-		//Delete some pointer variables for don't get to memory leak
-		//o2::MCTrack kMCPair = n
 
 		if (hitbr) {
 			assert(trackidsinITS.size() == trackidsinITS_fromhits.size());
@@ -1938,8 +1797,8 @@ int checkStackDQ_sgn()
 	// Histogram Filling Checking for Drawing //
 	////////////////////////////////////////////
 
-	if(histPtJpsiPrompt->GetEntries()    > 0)   {  PromptCheck    = kTRUE; }
-	if(histPtJpsiNonPrompt->GetEntries() > 0)   {  NonPromptCheck = kTRUE; }
+	if(histPtJpsiPrompt->GetEntries()    > 0)   {  kPromptCheck    = kTRUE; }
+	if(histPtJpsiNonPrompt->GetEntries() > 0)   {  kNonPromptCheck = kTRUE; }
 
 	////////////////////////////////////////////////
 	// Declare some bin parameters for BW Fitting //
@@ -1975,7 +1834,7 @@ int checkStackDQ_sgn()
 
 	// Efficiency = N_Accepted (After Cuts) / N_Recorded (Before Cuts)
 
-	if(PromptCheck == kTRUE) {
+	if(kPromptCheck == kTRUE) {
 		// Efficiency for Prompt
 		histPtEfficiencyJpsiPrompt->Divide(histPtJpsiPrompt);
 		histPtPairEfficiencyJpsiPrompt->Divide(histPtPairJpsiPrompt);
@@ -1993,7 +1852,7 @@ int checkStackDQ_sgn()
 		histYEfficiencyPsi2sPrompt->GetYaxis()->SetRangeUser(0.2,1.0);
 	}
 
-	if(NonPromptCheck == kTRUE) {
+	if(kNonPromptCheck == kTRUE) {
 		// Efficiency for Non-Prompt
 		histPtEfficiencyJpsiNonPrompt->Divide(histPtJpsiNonPrompt);
 		histPtPairEfficiencyJpsiNonPrompt->Divide(histPtPairJpsiNonPrompt);
@@ -2012,14 +1871,14 @@ int checkStackDQ_sgn()
 	}
 
 	/// Writing Histograms to Disk (Output will histKine.root file) --> For Before Cuts
-	TFile foutput1("histKine.root","RECREATE");
+	TFile foutput1("histSgnKine.root","RECREATE");
 	PromptJpsiTree->Write();
 	PromptPsi2STree->Write();
 	NonPromptJpsiTree->Write();
 	NonPromptPsi2STree->Write();
 
 	/// Write Histograms for Prompt J/Psi
-	if(PromptCheck == kTRUE) {
+	if(kPromptCheck == kTRUE) {
 		histMassPairJpsiPrompt->Write();
 		histPtPairJpsiPrompt->Write();
 		histPtJpsiPrompt->Write();
@@ -2036,7 +1895,7 @@ int checkStackDQ_sgn()
 		histPhiPsi2sPrompt->Write();
 	}
 	/// Write Histograms for Non - Prompt J/Psi
-	if(NonPromptCheck == kTRUE) {
+	if(kNonPromptCheck == kTRUE) {
 		histMassPairJpsiNonPrompt->Write();
 		histPtPairJpsiNonPrompt->Write();
 		histPtJpsiNonPrompt->Write();
@@ -2056,27 +1915,16 @@ int checkStackDQ_sgn()
 		histThetaPsi2sNonPrompt->Write();
 		histPhiPsi2sNonPrompt->Write();
 	}
-	histOrigin->Write();
-	histJpsiPairStatistics->Write();
-	histPsi2sPairStatistics->Write();
-	histPromptJpsiPairStatistics->Write();
-	histPromptPsi2sPairStatistics->Write();
-	histNonPromptJpsiPairStatistics->Write();
-	histNonPromptPsi2sPairStatistics->Write();
-	histBeautyMesonsFromJpsi->Write();
-	histBeautyBaryonsFromJpsi->Write();
-	histBeautyMesonsFromPsi2s->Write();
-	histBeautyBaryonsFromPsi2s->Write();
 
 	/// Writing Histograms to Disk (Output will histCutKine.root file) --> For After Cuts
-	TFile foutput2("histCutKine.root","RECREATE");
+	TFile foutput2("histSgnCutKine.root","RECREATE");
 	PromptJpsiTreeAfterCuts->Write();
 	PromptPsi2STreeAfterCuts->Write();
 	NonPromptJpsiTreeAfterCuts->Write();
 	NonPromptPsi2STreeAfterCuts->Write();
 
 	/// Write Histograms for Prompt J/Psi and Psi(2S)
-	if(PromptCheck == kTRUE) {
+	if(kPromptCheck == kTRUE) {
 		histMassPairJpsiPromptAfterCuts->Write();
 		histPtPairJpsiPromptAfterCuts->Write();
 		histPtJpsiPromptAfterCuts->Write();
@@ -2093,7 +1941,7 @@ int checkStackDQ_sgn()
 		histPhiPsi2sPromptAfterCuts->Write();
 	}
 	/// Write Histograms for Non - Prompt J/Psi and Psi(2S)
-	if(NonPromptCheck == kTRUE) {
+	if(kNonPromptCheck == kTRUE) {
 		histMassPairJpsiNonPromptAfterCuts->Write();
 		histPtPairJpsiNonPromptAfterCuts->Write();
 		histPtJpsiNonPromptAfterCuts->Write();
@@ -2109,20 +1957,9 @@ int checkStackDQ_sgn()
 		histThetaPsi2sNonPromptAfterCuts->Write();
 		histPhiPsi2sNonPromptAfterCuts->Write();
 	}
-	histOriginAfterCuts->Write();
-	histJpsiPairStatisticsAfterCuts->Write();
-	histPsi2sPairStatisticsAfterCuts->Write();
-	histPromptJpsiPairStatisticsAfterCuts->Write();
-	histPromptPsi2sPairStatisticsAfterCuts->Write();
-	histNonPromptJpsiPairStatisticsAfterCuts->Write();
-	histNonPromptPsi2sPairStatisticsAfterCuts->Write();
-	histBeautyMesonsFromJpsiAfterCuts->Write();
-	histBeautyBaryonsFromJpsiAfterCuts->Write();
-	histBeautyMesonsFromPsi2sAfterCuts->Write();
-	histBeautyBaryonsFromPsi2sAfterCuts->Write();
 
 	/// Writing Histograms to Disk (Output will histCompareAfterCuts.root file) --> For Comparing J/Psi and Psi(2S)
-	TFile foutput3("histCompareAfterCuts.root","RECREATE");
+	TFile foutput3("histSgnCompareAfterCuts.root","RECREATE");
 
 	// Setting the Line Colours for comparing J/psi and Psi(2S)
 	histMassPairPsi2sPromptAfterCuts->SetLineColor(kGreen+3);
@@ -2198,12 +2035,12 @@ int checkStackDQ_sgn()
 	// Applying Breit Wigner Fit For After Cuts //
 	//////////////////////////////////////////////
 
-	if(PromptCheck == kTRUE) {
+	if(kPromptCheck == kTRUE) {
 		///Fit Inv Mass Histograms for Prompt J/Psi and Psi(2S)
 		histMassPairJpsiPromptAfterCuts->Fit("mybwMass_jpsi","QR");       TF1 *fitMassPairJpsiPromptAfterCuts   = histMassPairJpsiPrompt->GetFunction("mybwMass_jpsi");
 		histMassPairPsi2sPromptAfterCuts->Fit("mybwMass_psi2s","QR");     TF1 *fitMassPairPsi2sPromptAfterCuts  = histMassPairPsi2sPromptAfterCuts->GetFunction("mybwMass_psi2s");
 	}
-	if(NonPromptCheck == kTRUE) {
+	if(kNonPromptCheck == kTRUE) {
 		/// Fit Inv Mass Histograms for Non - Prompt J/Psi and Non-Prompt Psi(2S)
 		histMassPairJpsiNonPromptAfterCuts->Fit("mybwMass_jpsi","QR");    TF1 *fitMassPairJpsiNonPromptAfterCuts   = histMassPairJpsiNonPromptAfterCuts->GetFunction("mybwMass_jpsi");
 		histMassPairPsi2sNonPromptAfterCuts->Fit("mybwMass_psi2s","QR");  TF1 *fitMassPairPsi2sNonPromptAfterCuts  = histMassPairPsi2sNonPromptAfterCuts->GetFunction("mybwMass_psi2s");
@@ -2211,37 +2048,26 @@ int checkStackDQ_sgn()
 
 
 	/// Writing Histograms to Disk (Output will histFittingAfterCuts.root file) --> For Fitted (Breit - Wigner) Histos After Cuts
-	TFile foutput4("histFittingAfterCuts.root","RECREATE");
+	TFile foutput4("histSgnAfterCuts.root","RECREATE");
 
 	/// Write Histograms for Prompt J/Psi and Psi(2S)
-	if(PromptCheck == kTRUE) {
+	if(kPromptCheck == kTRUE) {
 		//histEtaPromptAfterCuts->Write("PE0");
 		histMassPairJpsiPromptAfterCuts->Write("PE0");
-		histPtPairJpsiPromptAfterCuts->Write("PE0");
-		histPtJpsiPromptAfterCuts->Write("PE0");
-		histYJpsiPromptAfterCuts->Write("PE0");
 		histMassPairPsi2sPromptAfterCuts->Write("PE0");
-		histPtPairPsi2sPromptAfterCuts->Write("PE0");
-		histPtPsi2sPromptAfterCuts->Write("PE0");
-		histYPsi2sPromptAfterCuts->Write("PE0");
+
 	}
 	/// Write Histograms for Non - Prompt J/Psi and Psi(2S)
-	if(NonPromptCheck == kTRUE) {
+	if(kNonPromptCheck == kTRUE) {
 		//histEtaNonPromptAfterCuts->Write("PE0");
 		histMassPairJpsiNonPromptAfterCuts->Write("PE0");
-		histPtPairJpsiNonPromptAfterCuts->Write("PE0");
-		histPtJpsiNonPromptAfterCuts->Write("PE0");
-		histYJpsiNonPromptAfterCuts->Write("PE0");
 		histMassPairPsi2sNonPromptAfterCuts->Write("PE0");
-		histPtPairPsi2sNonPromptAfterCuts->Write("PE0");
-		histPtPsi2sNonPromptAfterCuts->Write("PE0");
-		histYPsi2sNonPromptAfterCuts->Write("PE0");
 	}
 	/// Writing Histograms to Disk (Output will histAcceptance.root file) --> For Acceptance Factor
-	TFile foutput5("histAcceptance.root","RECREATE");
+	TFile foutput5("histSgnAcceptance.root","RECREATE");
 
 	// Prompt J/Psi and Psi(2S)
-	if(PromptCheck == kTRUE) {
+	if(kPromptCheck == kTRUE) {
 		histPtEfficiencyJpsiPrompt->Write();
 		histPtPairEfficiencyJpsiPrompt->Write();
 		histYEfficiencyJpsiPrompt->Write();
@@ -2250,7 +2076,7 @@ int checkStackDQ_sgn()
 		histYEfficiencyPsi2sPrompt->Write();
 	}
 	// Non-Prompt J/psi and Psi(2S)
-	if(NonPromptCheck == kTRUE) {
+	if(kNonPromptCheck == kTRUE) {
 		histPtEfficiencyJpsiNonPrompt->Write();
 		histPtPairEfficiencyJpsiNonPrompt->Write();
 		histYEfficiencyJpsiNonPrompt->Write();
@@ -2259,10 +2085,10 @@ int checkStackDQ_sgn()
 		histYEfficiencyPsi2sNonPrompt->Write();
 	}
 	/// Writing Histograms to Disk (Output will histAnalysis.root file) --> For check Corelations
-	TFile foutput6("histAnalysis.root","RECREATE");
+	TFile foutput6("histSgnAnalysis.root","RECREATE");
 
 	// before cuts
-	if(PromptCheck == kTRUE){
+	if(kPromptCheck == kTRUE){
 	histPromptJpsiPhiVersusEta->Write();
 	histPromptJpsiEtaVersusPt->Write();
 	histPromptJpsiEtaVersusPtPair->Write();
@@ -2283,7 +2109,7 @@ int checkStackDQ_sgn()
 	histPromptPsi2sPtPairVersusY->Write();
 	histPromptPsi2sPtPairVersusPt->Write();
   }
-	if(NonPromptCheck == kTRUE){
+	if(kNonPromptCheck == kTRUE){
 	histNonPromptJpsiPhiVersusEta->Write();
 	histNonPromptJpsiEtaVersusPt->Write();
 	histNonPromptJpsiEtaVersusPtPair->Write();
@@ -2305,10 +2131,10 @@ int checkStackDQ_sgn()
 	histNonPromptPsi2sPtPairVersusPt->Write();
   }
 	/// Writing Histograms to Disk (Output will histCutAnalysis.root file) --> For check Corelations After Cuts
-	TFile foutput7("histCutAnalysis.root","RECREATE");
+	TFile foutput7("histSgnCutAnalysis.root","RECREATE");
 
 	// after cuts
-	if(PromptCheck == kTRUE){
+	if(kPromptCheck == kTRUE){
 	histPromptJpsiPhiVersusEtaAfterCuts->Write();
 	histPromptJpsiEtaVersusPtAfterCuts->Write();
 	histPromptJpsiEtaVersusPtPairAfterCuts->Write();
@@ -2330,7 +2156,7 @@ int checkStackDQ_sgn()
 	histPromptPsi2sPtPairVersusPtAfterCuts->Write();
   }
 
-	if(NonPromptCheck == kTRUE){
+	if(kNonPromptCheck == kTRUE){
 	histNonPromptJpsiPhiVersusEtaAfterCuts->Write();
 	histNonPromptJpsiEtaVersusPtAfterCuts->Write();
 	histNonPromptJpsiEtaVersusPtPairAfterCuts->Write();
@@ -2353,14 +2179,15 @@ int checkStackDQ_sgn()
   }
 
 	// Writing Histograms to Disk (Output will histCutAnalysis.root file) --> For Check Detector Parameters and Correlations
-	TFile foutput8("histDetectorAnalysis.root","RECREATE");
+	TFile foutput8("histSgnDetectorAnalysis.root","RECREATE");
 
 	histTPCHits->Write();
 	histITSHits->Write();
 	histTPCVersusITS->Write();
 
+	// TODO: AFTER CUTS İÇİN DE YAP.
+	TFile foutput9("histSgnBeautyAnalysis.root","RECREATE");
 
-	TFile foutput9("histBeautyAnalysis.root","RECREATE");
 	histPseudoProperDecayLengthB0->Write();
 	histPseudoProperDecayLengthBplus->Write();
 	histPseudoProperDecayLengthBszero->Write();
@@ -2376,6 +2203,32 @@ int checkStackDQ_sgn()
 	histPseudoProperDecayLengthJpsi->Write();
 	histPseudoProperDecayTimeJpsi->Write();
 
+	TFile foutput10("histSgnStatistics.root","RECREATE");
+
+	histOrigin->Write();
+	histJpsiPairStatistics->Write();
+	histPsi2sPairStatistics->Write();
+	histPromptJpsiPairStatistics->Write();
+	histPromptPsi2sPairStatistics->Write();
+	histNonPromptJpsiPairStatistics->Write();
+	histNonPromptPsi2sPairStatistics->Write();
+	histBeautyMesonsFromJpsi->Write();
+	histBeautyBaryonsFromJpsi->Write();
+	histBeautyMesonsFromPsi2s->Write();
+	histBeautyBaryonsFromPsi2s->Write();
+
+	TFile foutput11("histSgnCutStatistics.root","RECREATE");
+	histOriginAfterCuts->Write();
+	histJpsiPairStatisticsAfterCuts->Write();
+	histPsi2sPairStatisticsAfterCuts->Write();
+	histPromptJpsiPairStatisticsAfterCuts->Write();
+	histPromptPsi2sPairStatisticsAfterCuts->Write();
+	histNonPromptJpsiPairStatisticsAfterCuts->Write();
+	histNonPromptPsi2sPairStatisticsAfterCuts->Write();
+	histBeautyMesonsFromJpsiAfterCuts->Write();
+	histBeautyBaryonsFromJpsiAfterCuts->Write();
+	histBeautyMesonsFromPsi2sAfterCuts->Write();
+	histBeautyBaryonsFromPsi2sAfterCuts->Write();
 
 	LOG(info) << "STACK TEST SUCCESSFULL\n";
 	return 0;
