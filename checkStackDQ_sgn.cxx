@@ -12,7 +12,7 @@
 // Analyses kinematics and track references of a kinematics file
 
 // Usage: root checkStackDQ.cxx++
-//          .x checkStackDQ.cxx++
+//          .x checkStackDQ.cxx++/
 
 #include "SimulationDataFormat/MCTrack.h"
 #include "SimulationDataFormat/MCUtils.h"
